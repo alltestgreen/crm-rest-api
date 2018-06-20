@@ -1,6 +1,6 @@
 package com.abara.controller;
 
-import com.abara.model.User;
+import com.abara.entity.User;
 import com.abara.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +18,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping(value = "/list")
+    @GetMapping("/list")
     public List<User> list() {
         return userService.list();
     }
 
-    @GetMapping(value = "/details/{userId}")
+    @GetMapping("/details/{userId}")
     public ResponseEntity<User> details(@PathVariable Long userId) {
         Optional<User> user = userService.findById(userId);
         return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
@@ -37,7 +37,7 @@ public class UserController {
         return ResponseEntity.created(location).build();
     }
 
-    @PutMapping(value = "/update")
+    @PutMapping("/update")
     public ResponseEntity<Void> update(@RequestBody User user) {
         if (user == null) return ResponseEntity.noContent().build();
         Optional<User> existingUserOptional = userService.findById(user.getId());
@@ -54,7 +54,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping(value = "/delete/{userId}")
+    @PostMapping("/delete/{userId}")
     public ResponseEntity<Void> delete(@PathVariable Long userId) {
         if (userId == null) return ResponseEntity.noContent().build();
         Optional<User> existingUser = userService.findById(userId);

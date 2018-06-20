@@ -1,15 +1,20 @@
 package com.abara.controller;
 
 import com.abara.common.AbstractIntegrationTest;
-import com.abara.model.Customer;
+import com.abara.entity.Customer;
+import com.abara.entity.CustomerImage;
+import com.abara.model.CustomerDetails;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,9 +29,10 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String API_CUSTOMER_LIST = "/api/customer/list";
     private static final String API_CUSTOMER_UPDATE = "/api/customer/update";
     private static final String API_CUSTOMER_DELETE = "/api/customer/delete/";
+    private static final String API_CUSTOMER_IMAGE = "/api/customer/image/";
+    private static final String API_CUSTOMER_UPLOAD_IMAGE = "api/customer/uploadImage/";
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final HttpHeaders headers = new HttpHeaders();
 
     @Value("${oauth.user.username}")
     private String apiUser;
@@ -51,44 +57,42 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testRetrieveById() {
         Long testID = 2L;
-        ResponseEntity<Customer> response = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        ResponseEntity<CustomerDetails> response = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        Customer customer = response.getBody();
-        Assert.assertNotNull(customer);
+        CustomerDetails customerDetails = response.getBody();
+        Assert.assertNotNull(customerDetails);
 
-        assertNotNull(customer.getName());
-        assertNotNull(customer.getSurname());
-        assertNull(customer.getPhoto());
-        assertNotNull(customer.getCreatedBy());
+        assertEquals("Grace", customerDetails.getName());
+        assertEquals("Clarkson", customerDetails.getSurname());
+        assertEquals("http://localhost:8083" + API_CUSTOMER_IMAGE + testID, customerDetails.getImageURL());
     }
 
     @Test
     public void testCreate() {
         String testName = "Cassie";
         String testSurName = "Mckenzie";
-        String testPhoto = "photo";
-        Customer newCustomer = new Customer(testName, testSurName, testPhoto);
+        CustomerImage testImage = new CustomerImage("name", "type", new byte[]{123});
+        Customer newCustomer = new Customer(testName, testSurName, testImage);
 
         ResponseEntity<Void> response = restTemplate.postForEntity(
                 createURLWithPort(API_CUSTOMER_CREATE),
-                new HttpEntity<>(newCustomer, headers), Void.class);
+                new HttpEntity<>(newCustomer), Void.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();
         assertTrue(resourceURL.toString().contains(API_CUSTOMER_DETAILS));
 
-        ResponseEntity<Customer> getResponse = restTemplate.getForEntity(resourceURL, Customer.class);
+        ResponseEntity<CustomerDetails> getResponse = restTemplate.getForEntity(resourceURL, CustomerDetails.class);
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
 
-        Customer createdCustomer = getResponse.getBody();
-        assertNotNull(createdCustomer.getId());
-        assertEquals(testName, createdCustomer.getName());
-        assertEquals(testSurName, createdCustomer.getSurname());
-        assertEquals(testPhoto, createdCustomer.getPhoto());
-        assertNull(createdCustomer.getMofifiedBy());
-        assertEquals(apiUser, createdCustomer.getCreatedBy());
+        CustomerDetails customerDetails = getResponse.getBody();
+        assertEquals(newCustomer.getName(), customerDetails.getName());
+        assertEquals(newCustomer.getSurname(), customerDetails.getSurname());
+        assertNotNull(customerDetails.getImageURL());
+        assertNull(customerDetails.getModifiedBy());
+        assertEquals(apiUser, customerDetails.getCreatedBy());
     }
 
     @Test
@@ -96,54 +100,87 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         Long testID = 1L;
         String testName = "Cassie";
         String testSurName = "Mckenzie";
-        String testPhoto = "photo";
+        CustomerImage testImage = new CustomerImage("name", "type", new byte[]{123});
 
-        ResponseEntity<Customer> customerResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
-        Customer customer = customerResponse.getBody();
+        CustomerDetails customerDetails = customerResponse.getBody();
 
-        Assert.assertNotNull(customer);
+        Assert.assertNotNull(customerDetails);
 
+        Customer customer = new Customer();
+        customer.setId(testID);
         customer.setName(testName);
         customer.setSurname(testSurName);
-        customer.setPhoto(testPhoto);
+        customer.setImage(testImage);
 
         ResponseEntity<Void> response = restTemplate.exchange(
                 createURLWithPort(API_CUSTOMER_UPDATE),
-                HttpMethod.PUT, new HttpEntity<>(customer, headers), Void.class);
+                HttpMethod.PUT, new HttpEntity<>(customer), Void.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        ResponseEntity<Customer> updatedResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        ResponseEntity<CustomerDetails> updatedResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, updatedResponse.getStatusCode());
-        Customer updatedCustomer = updatedResponse.getBody();
+        CustomerDetails updatedCustomerDetails = updatedResponse.getBody();
 
-        assertEquals(testName, updatedCustomer.getName());
-        assertEquals(testSurName, updatedCustomer.getSurname());
-        assertEquals(testPhoto, updatedCustomer.getPhoto());
-        assertEquals(apiUser, updatedCustomer.getMofifiedBy());
+        assertEquals(testName, updatedCustomerDetails.getName());
+        assertEquals(testSurName, updatedCustomerDetails.getSurname());
+        assertNotNull(updatedCustomerDetails.getImageURL());
+        assertNotNull(updatedCustomerDetails.getCreatedBy());
+        assertEquals(apiUser, updatedCustomerDetails.getModifiedBy());
     }
 
     @Test
     public void testDelete() {
         Long testID = 3L;
 
-        ResponseEntity<Customer> customerResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
-        Customer customer = customerResponse.getBody();
-        Assert.assertNotNull(customer);
+        CustomerDetails customerDetails = customerResponse.getBody();
+        Assert.assertNotNull(customerDetails);
 
         ResponseEntity<Void> deleteResponse = restTemplate.postForEntity(
-                createURLWithPort(API_CUSTOMER_DELETE + customer.getId()),
-                new HttpEntity<>(headers), Void.class);
+                createURLWithPort(API_CUSTOMER_DELETE + testID),
+                new HttpEntity<>(null), Void.class);
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
 
-        ResponseEntity<Customer> getResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + customer.getId()), Customer.class);
+        ResponseEntity<CustomerDetails> getResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
         System.out.println(getResponse.getStatusCode());
         assertEquals(HttpStatus.NO_CONTENT, getResponse.getStatusCode());
+    }
+
+    @Test
+    public void testImageUpload() {
+        Long testID = 1L;
+        String fileParamName = "file";
+        FileSystemResource fileSystemResource = new FileSystemResource("src/test/resources/images/red-dot.png");
+
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+        map.add(fileParamName, fileSystemResource);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        ResponseEntity<Void> uploadResponse = restTemplate.postForEntity(
+                createURLWithPort(API_CUSTOMER_UPLOAD_IMAGE + testID), new HttpEntity<>(map, headers), Void.class);
+        assertEquals(HttpStatus.CREATED, uploadResponse.getStatusCode());
+    }
+
+    @Test
+    public void testImageUploadRetrieval() throws IOException {
+        Long testID = 1L;
+        FileSystemResource fileSystemResource = new FileSystemResource("src/test/resources/images/red-dot.png");
+
+        ResponseEntity<byte[]> response = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_IMAGE + testID), byte[].class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        byte[] imageBytes = response.getBody();
+        Assert.assertEquals(fileSystemResource.contentLength(), imageBytes.length);
     }
 
 }

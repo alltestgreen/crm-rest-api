@@ -1,6 +1,6 @@
 package com.abara.repository;
 
-import com.abara.model.Customer;
+import com.abara.entity.Customer;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 

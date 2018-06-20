@@ -1,5 +1,7 @@
 package com.abara.model;
 
+import com.abara.entity.Role;
+import com.abara.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

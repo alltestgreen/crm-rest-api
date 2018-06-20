@@ -1,7 +1,7 @@
 package com.abara.service;
 
 
-import com.abara.model.User;
+import com.abara.entity.User;
 import com.abara.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

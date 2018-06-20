@@ -1,6 +1,6 @@
 package com.abara.service;
 
-import com.abara.model.Customer;
+import com.abara.entity.Customer;
 import com.abara.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
