@@ -2,6 +2,7 @@ package com.abara.service;
 
 import com.abara.model.Customer;
 import com.abara.repository.CustomerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,11 +11,8 @@ import java.util.Optional;
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
+    @Autowired
     private CustomerRepository customerRepository;
-
-    public CustomerServiceImpl(CustomerRepository CustomerRepository) {
-        this.customerRepository = CustomerRepository;
-    }
 
     @Override
     public Customer save(Customer Customer) {
@@ -37,8 +35,8 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void delete(Customer customer) {
-        customerRepository.delete(customer);
+    public void delete(Long id) {
+        customerRepository.deleteById(id);
     }
 
 }

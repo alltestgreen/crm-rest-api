@@ -1,53 +1,44 @@
 package com.abara.controller;
 
-import com.abara.DemoApplication;
+import com.abara.common.AbstractIntegrationTest;
 import com.abara.model.Customer;
-import com.abara.service.CustomerService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.security.oauth2.client.OAuth2RestOperations;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = DemoApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CustomerControllerIntegrationTest {
+public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
-    @LocalServerPort
-    private int port;
+    private static final String API_CUSTOMER_CREATE = "/api/customer/create";
+    private static final String API_CUSTOMER_DETAILS = "/api/customer/details/";
+    private static final String API_CUSTOMER_LIST = "/api/customer/list";
+    private static final String API_CUSTOMER_UPDATE = "/api/customer/update";
+    private static final String API_CUSTOMER_DELETE = "/api/customer/delete/";
 
-    private HttpHeaders headers = new HttpHeaders();
-    private TestRestTemplate restTemplate = new TestRestTemplate();
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpHeaders headers = new HttpHeaders();
 
-    @Test
-    public void testCreateCustomer() {
-        Customer customer = new Customer("Test", "Customer", null);
+    @Value("${oauth.user.username}")
+    private String apiUser;
 
-        ResponseEntity<Void> response = restTemplate.exchange(
-                createURLWithPort("/api/customer/create"),
-                HttpMethod.POST, new HttpEntity<>(customer, headers), Void.class);
-
-        assertTrue(response.getHeaders().get(HttpHeaders.LOCATION).get(0).contains("/api/customer/details/"));
-    }
+    @Autowired
+    private OAuth2RestOperations restTemplate;
 
     @Test
-    public void testRetrieveAllCustomer() throws IOException {
-        ResponseEntity<String> response = restTemplate.exchange(
-                createURLWithPort("/api/customer/list"),
-                HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    public void testRetrieveAllName() throws IOException {
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_LIST), String.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<String> customers = mapper.readValue(response.getBody(), new TypeReference<List<String>>() {
         });
@@ -58,45 +49,101 @@ public class CustomerControllerIntegrationTest {
     }
 
     @Test
-    public void testRetrieveCustomerById() {
+    public void testRetrieveById() {
         Long testID = 2L;
-        ResponseEntity<Customer> response = restTemplate.exchange(
-                createURLWithPort("/api/customer/details/" + testID),
-                HttpMethod.GET, new HttpEntity<>(headers), Customer.class);
+        ResponseEntity<Customer> response = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
 
         Customer customer = response.getBody();
-        assertEquals("Grace", customer.getName());
-        assertEquals("Clarkson", customer.getSurname());
-        assertEquals(null, customer.getPhoto());
+        Assert.assertNotNull(customer);
+
+        assertNotNull(customer.getName());
+        assertNotNull(customer.getSurname());
+        assertNull(customer.getPhoto());
+        assertNotNull(customer.getCreatedBy());
+    }
+
+    @Test
+    public void testCreate() {
+        String testName = "Cassie";
+        String testSurName = "Mckenzie";
+        String testPhoto = "photo";
+        Customer newCustomer = new Customer(testName, testSurName, testPhoto);
+
+        ResponseEntity<Void> response = restTemplate.postForEntity(
+                createURLWithPort(API_CUSTOMER_CREATE),
+                new HttpEntity<>(newCustomer, headers), Void.class);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+        URI resourceURL = response.getHeaders().getLocation();
+        assertTrue(resourceURL.toString().contains(API_CUSTOMER_DETAILS));
+
+        ResponseEntity<Customer> getResponse = restTemplate.getForEntity(resourceURL, Customer.class);
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+
+        Customer createdCustomer = getResponse.getBody();
+        assertNotNull(createdCustomer.getId());
+        assertEquals(testName, createdCustomer.getName());
+        assertEquals(testSurName, createdCustomer.getSurname());
+        assertEquals(testPhoto, createdCustomer.getPhoto());
+        assertNull(createdCustomer.getMofifiedBy());
+        assertEquals(apiUser, createdCustomer.getCreatedBy());
     }
 
     @Test
     public void testUpdate() {
         Long testID = 1L;
-        ResponseEntity<Customer> customerResponse = restTemplate.exchange(
-                createURLWithPort("/api/customer/details/" + testID),
-                HttpMethod.GET, new HttpEntity<>(headers), Customer.class);
+        String testName = "Cassie";
+        String testSurName = "Mckenzie";
+        String testPhoto = "photo";
+
+        ResponseEntity<Customer> customerResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
         Customer customer = customerResponse.getBody();
 
         Assert.assertNotNull(customer);
 
-        customer.setName("Cassie");
-        customer.setSurname("Mckenzie");
+        customer.setName(testName);
+        customer.setSurname(testSurName);
+        customer.setPhoto(testPhoto);
 
         ResponseEntity<Void> response = restTemplate.exchange(
-                createURLWithPort("/api/customer/update/"),
+                createURLWithPort(API_CUSTOMER_UPDATE),
                 HttpMethod.PUT, new HttpEntity<>(customer, headers), Void.class);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        ResponseEntity<Customer> updatedResponse = restTemplate.exchange(
-                createURLWithPort("/api/customer/details/" + testID),
-                HttpMethod.GET, new HttpEntity<>(headers), Customer.class);
+        ResponseEntity<Customer> updatedResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        assertEquals(HttpStatus.OK, updatedResponse.getStatusCode());
+        Customer updatedCustomer = updatedResponse.getBody();
 
-        assertEquals(customer, updatedResponse.getBody());
+        assertEquals(testName, updatedCustomer.getName());
+        assertEquals(testSurName, updatedCustomer.getSurname());
+        assertEquals(testPhoto, updatedCustomer.getPhoto());
+        assertEquals(apiUser, updatedCustomer.getMofifiedBy());
     }
 
-    private String createURLWithPort(String uri) {
-        return "http://localhost:" + port + uri;
+    @Test
+    public void testDelete() {
+        Long testID = 3L;
+
+        ResponseEntity<Customer> customerResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), Customer.class);
+        assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
+        Customer customer = customerResponse.getBody();
+        Assert.assertNotNull(customer);
+
+        ResponseEntity<Void> deleteResponse = restTemplate.postForEntity(
+                createURLWithPort(API_CUSTOMER_DELETE + customer.getId()),
+                new HttpEntity<>(headers), Void.class);
+        assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
+
+        ResponseEntity<Customer> getResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + customer.getId()), Customer.class);
+        System.out.println(getResponse.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, getResponse.getStatusCode());
     }
+
 }

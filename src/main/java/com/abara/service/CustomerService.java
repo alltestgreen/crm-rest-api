@@ -15,6 +15,6 @@ public interface CustomerService {
 
     Optional<Customer> findById(Long id);
 
-    void delete(Customer customer);
+    void delete(Long id);
 
 }

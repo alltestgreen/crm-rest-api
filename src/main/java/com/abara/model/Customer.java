@@ -5,16 +5,19 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
 public class Customer {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customer_seq")
+    @SequenceGenerator(
+            name="customer_seq",
+            sequenceName="customer_sequence",
+            allocationSize=20
+    )
     private Long id;
 
     @NotNull
@@ -64,6 +67,22 @@ public class Customer {
 
     public void setPhoto(String photo) {
         this.photo = photo;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getMofifiedBy() {
+        return mofifiedBy;
+    }
+
+    public void setMofifiedBy(String mofifiedBy) {
+        this.mofifiedBy = mofifiedBy;
     }
 
     @Override
