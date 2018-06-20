@@ -1,4 +1,4 @@
-package com.abara.model;
+package com.abara.entity;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -75,7 +75,7 @@ public class User {
 
     @Override
     public boolean equals(Object that) {
-        return EqualsBuilder.reflectionEquals(this, that);
+        return EqualsBuilder.reflectionEquals(this, that, "id");
     }
 
     @Override

@@ -1,8 +1,9 @@
 package com.abara.config;
 
-import com.abara.model.Customer;
-import com.abara.model.Role;
-import com.abara.model.User;
+import com.abara.entity.Customer;
+import com.abara.entity.CustomerImage;
+import com.abara.entity.Role;
+import com.abara.entity.User;
 import com.abara.service.CustomerService;
 import com.abara.service.UserService;
 import org.springframework.boot.CommandLineRunner;
@@ -12,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -27,11 +30,16 @@ public class SpringApplicationConfig {
     @Bean
     @Conditional(DefaultDataCondition.class)
     CommandLineRunner runner(CustomerService customerService, UserService userService) {
-        System.out.println("Populate default data...");
+        System.out.println("Populating in-memory database with default data...");
         return args -> {
-            Customer customer1 = new Customer("John", "Smith", null);
+
+            byte[] fileBytes = Files.readAllBytes(Paths.get("src/test/resources/images/red-dot.png"));
+            CustomerImage customerImage = new CustomerImage("red-dot.png", "image/png", fileBytes);
+
+            Customer customer1 = new Customer("John", "Smith", customerImage);
             Customer customer2 = new Customer("Grace", "Clarkson", null);
             Customer customer3 = new Customer("Timothy", "Thompson", null);
+
             customer1.setCreatedBy("admin");
             customer2.setCreatedBy("admin");
             customer3.setCreatedBy("admin");

@@ -1,6 +1,6 @@
 package com.abara.service;
 
-import com.abara.model.Customer;
+import com.abara.entity.Customer;
 
 import java.util.List;
 import java.util.Optional;

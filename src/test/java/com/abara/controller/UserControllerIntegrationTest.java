@@ -1,13 +1,16 @@
 package com.abara.controller;
 
 import com.abara.common.AbstractIntegrationTest;
-import com.abara.model.Role;
-import com.abara.model.User;
+import com.abara.entity.Role;
+import com.abara.entity.User;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 
@@ -26,8 +29,6 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String API_USER_UPDATE = "/api/user/update";
     private static final String API_USER_DELETE = "/api/user/delete/";
 
-    private final HttpHeaders headers = new HttpHeaders();
-
     @Autowired
     private OAuth2RestOperations restTemplate;
 
@@ -39,7 +40,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         ParameterizedTypeReference<List<User>> responseType = new ParameterizedTypeReference<List<User>>() {
         };
         ResponseEntity<List<User>> response = restTemplate.exchange(
-                createURLWithPort(API_USER_LIST), HttpMethod.GET, new HttpEntity<>(headers), responseType);
+                createURLWithPort(API_USER_LIST), HttpMethod.GET, new HttpEntity<>(null), responseType);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<User> users = response.getBody();
@@ -72,7 +73,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
         ResponseEntity<Void> response = restTemplate.postForEntity(
                 createURLWithPort(API_USER_CREATE),
-                new HttpEntity<>(newUser, headers), Void.class);
+                new HttpEntity<>(newUser), Void.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();
@@ -108,7 +109,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
         ResponseEntity<Void> response = restTemplate.exchange(
                 createURLWithPort(API_USER_UPDATE),
-                HttpMethod.PUT, new HttpEntity<>(user, headers), Void.class);
+                HttpMethod.PUT, new HttpEntity<>(user), Void.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         ResponseEntity<User> updatedResponse = restTemplate.getForEntity(
@@ -132,7 +133,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
         ResponseEntity<Void> deleteResponse = restTemplate.postForEntity(
                 createURLWithPort(API_USER_DELETE + user.getId()),
-                new HttpEntity<>(headers), Void.class);
+                new HttpEntity<>(null), Void.class);
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
 
         ResponseEntity<User> getResponse = restTemplate.getForEntity(
@@ -141,14 +142,4 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(HttpStatus.NO_CONTENT, getResponse.getStatusCode());
     }
 
-    @Test
-    public void imageUpload() {
-        Long testID = 1L;
-        String image = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
-
-        ResponseEntity<Void> uploadResponse = restTemplate.postForEntity(
-                createURLWithPort("api/user/uploadImage/" + testID),
-                new HttpEntity<>(image, headers), Void.class);
-        assertEquals(HttpStatus.OK, uploadResponse.getStatusCode());
-    }
 }
