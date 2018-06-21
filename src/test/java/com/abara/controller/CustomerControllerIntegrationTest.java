@@ -29,7 +29,8 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String API_CUSTOMER_UPDATE = "/api/customer/update";
     private static final String API_CUSTOMER_DELETE = "/api/customer/delete/";
     private static final String API_CUSTOMER_IMAGE = "/api/customer/image/";
-    private static final String API_CUSTOMER_UPLOAD_IMAGE = "api/customer/uploadImage/";
+    private static final String API_CUSTOMER_IMAGE_UPLOAD = "api/customer/image/upload/";
+    private static final String API_CUSTOMER_IMAGE_DELETE = "api/customer/image/delete/";
 
     @Value("${oauth.username}")
     private String apiUser;
@@ -117,8 +118,10 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
                 HttpMethod.PUT, new HttpEntity<>(customer), Void.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        ResponseEntity<CustomerDetails> updatedResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+        URI resourceURL = response.getHeaders().getLocation();
+        assertTrue(resourceURL.toString().contains(API_CUSTOMER_DETAILS));
+
+        ResponseEntity<CustomerDetails> updatedResponse = restTemplate.getForEntity(resourceURL, CustomerDetails.class);
         assertEquals(HttpStatus.OK, updatedResponse.getStatusCode());
         CustomerDetails updatedCustomerDetails = updatedResponse.getBody();
 
@@ -162,8 +165,15 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         ResponseEntity<Void> uploadResponse = restTemplate.postForEntity(
-                createURLWithPort(API_CUSTOMER_UPLOAD_IMAGE + testID), new HttpEntity<>(map, headers), Void.class);
+                createURLWithPort(API_CUSTOMER_IMAGE_UPLOAD + testID), new HttpEntity<>(map, headers), Void.class);
         assertEquals(HttpStatus.CREATED, uploadResponse.getStatusCode());
+
+        ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+        assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
+        CustomerDetails customerDetails = customerResponse.getBody();
+        Assert.assertNotNull(customerDetails);
+        Assert.assertTrue(customerDetails.getImageURL().contains(API_CUSTOMER_IMAGE));
     }
 
     @Test
@@ -177,6 +187,22 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
         byte[] imageBytes = response.getBody();
         Assert.assertEquals(fileSystemResource.contentLength(), imageBytes.length);
+    }
+
+    @Test
+    public void testImageUploadDeletion() {
+        Long testID = 1L;
+
+        ResponseEntity<Void> response = restTemplate.postForEntity(
+                createURLWithPort(API_CUSTOMER_IMAGE_DELETE + testID), new HttpEntity<>(null), Void.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
+                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+        assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
+        CustomerDetails customerDetails = customerResponse.getBody();
+        Assert.assertNotNull(customerDetails);
+        Assert.assertNull(customerDetails.getImageURL());
     }
 
 }

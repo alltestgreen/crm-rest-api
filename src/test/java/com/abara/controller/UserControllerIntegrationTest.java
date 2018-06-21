@@ -123,8 +123,10 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
                 HttpMethod.PUT, new HttpEntity<>(user), Void.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        ResponseEntity<ApplicationUserDetails> updatedResponse = restTemplate.getForEntity(
-                createURLWithPort(API_USER_DETAILS + testID), ApplicationUserDetails.class);
+        URI resourceURL = response.getHeaders().getLocation();
+        assertTrue(resourceURL.toString().contains(API_USER_DETAILS));
+
+        ResponseEntity<ApplicationUserDetails> updatedResponse = restTemplate.getForEntity(resourceURL, ApplicationUserDetails.class);
         assertEquals(HttpStatus.OK, updatedResponse.getStatusCode());
         ApplicationUserDetails updatedUserDetails = updatedResponse.getBody();
 

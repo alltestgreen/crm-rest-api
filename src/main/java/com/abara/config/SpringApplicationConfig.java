@@ -37,10 +37,11 @@ public class SpringApplicationConfig {
         return args -> {
 
             byte[] fileBytes = Files.readAllBytes(Paths.get("src/test/resources/images/red-dot.png"));
-            CustomerImage customerImage = new CustomerImage("red-dot.png", "image/png", fileBytes);
+            CustomerImage customerImage1 = new CustomerImage("red-dot.png", "image/png", fileBytes);
+            CustomerImage customerImage2 = new CustomerImage("user.png", "image/png", fileBytes);
 
-            Customer customer1 = new Customer("John", "Smith", customerImage);
-            Customer customer2 = new Customer("Grace", "Clayson", null);
+            Customer customer1 = new Customer("John", "Smith", customerImage1);
+            Customer customer2 = new Customer("Grace", "Clayson", customerImage2);
             Customer customer3 = new Customer("Timothy", "Thompson", null);
 
             customer1.setCreatedBy("admin");

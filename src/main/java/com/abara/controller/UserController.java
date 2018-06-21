@@ -74,7 +74,8 @@ public class UserController {
 
         userService.save(existingUser);
 
-        return ResponseEntity.ok().build();
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/details/{id}").buildAndExpand(existingUser.getId()).toUri();
+        return ResponseEntity.ok().location(location).build();
     }
 
     @PostMapping("/delete/{userId}")

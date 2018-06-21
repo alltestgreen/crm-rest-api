@@ -43,8 +43,11 @@ public class CustomerController {
         Optional<Customer> customerOptional = customerService.findById(customerId);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
-            URL url = new URL(request.getRequestURL().toString());
-            String imageURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/api/customer/image/" + customer.getId();
+            String imageURL = null;
+            if (customer.getImage() != null) {
+                URL url = new URL(request.getRequestURL().toString());
+                imageURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/api/customer/image/" + customer.getId();
+            }
             CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), imageURL, customer.getCreatedBy(), customer.getModifiedBy());
             return ResponseEntity.ok(customerDetails);
         }
@@ -74,13 +77,16 @@ public class CustomerController {
 
         existingCustomer.setName(customer.getName());
         existingCustomer.setSurname(customer.getSurname());
-        existingCustomer.setImage(customer.getImage());
+        if (customer.getImage() != null) {
+            existingCustomer.setImage(customer.getImage());
+        }
 
         existingCustomer.setModifiedBy(principal.getName());
 
         customerService.save(existingCustomer);
 
-        return ResponseEntity.ok().build();
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/details/{id}").buildAndExpand(existingCustomer.getId()).toUri();
+        return ResponseEntity.ok().location(location).build();
     }
 
     @PostMapping("/delete/{customerId}")
@@ -94,7 +100,7 @@ public class CustomerController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/uploadImage/{customerId}")
+    @PostMapping("/image/upload/{customerId}")
     public ResponseEntity<Void> uploadImage(@PathVariable Long customerId, @RequestParam("file") MultipartFile file) {
         LOG.debug("Uploading Customer Image by ID: {}", customerId);
         if (file.isEmpty() || customerId == null) return ResponseEntity.noContent().build();
@@ -126,6 +132,22 @@ public class CustomerController {
                 headers.setContentType(MediaType.valueOf(customer.getImage().getType()));
                 headers.setCacheControl(CacheControl.noCache().getHeaderValue());
                 return new ResponseEntity<>(customer.getImage().getData(), headers, HttpStatus.OK);
+            }
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/image/delete/{customerId}")
+    public ResponseEntity<Void> deleteImage(@PathVariable Long customerId) {
+        LOG.debug("Deleting Customer Image by ID: {}", customerId);
+        if (customerId == null) return ResponseEntity.noContent().build();
+        Optional<Customer> existingCustomer = customerService.findById(customerId);
+        if (existingCustomer.isPresent()) {
+            Customer customer = existingCustomer.get();
+            if (customer.getImage() != null) {
+                customer.setImage(null);
+                customerService.save(customer);
+                return ResponseEntity.ok().build();
             }
         }
         return ResponseEntity.noContent().build();
