@@ -29,6 +29,9 @@ public class AuthorisationServerConfig extends AuthorizationServerConfigurerAdap
     @Value("${oauth.grant-type}")
     private String grantType;
 
+    @Value("${oauth.access.token.validity.seconds}")
+    private int accessTokenValiditySeconds;
+
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) {
         security.checkTokenAccess("isAuthenticated()");
@@ -40,9 +43,9 @@ public class AuthorisationServerConfig extends AuthorizationServerConfigurerAdap
                 .withClient(clientId)
                 .secret(passwordEncoder.encode(secret))
                 .authorizedGrantTypes(grantType)
+                .accessTokenValiditySeconds(accessTokenValiditySeconds)
                 .authorities("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT")
-                .scopes("read", "write")
-                .accessTokenValiditySeconds(600);
+                .scopes("read", "write");
     }
 
     @Override

@@ -4,12 +4,11 @@ import com.abara.common.AbstractIntegrationTest;
 import com.abara.entity.Customer;
 import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
@@ -18,7 +17,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -32,26 +31,24 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String API_CUSTOMER_IMAGE = "/api/customer/image/";
     private static final String API_CUSTOMER_UPLOAD_IMAGE = "api/customer/uploadImage/";
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    @Value("${oauth.user.username}")
+    @Value("${oauth.username}")
     private String apiUser;
 
     @Autowired
     private OAuth2RestOperations restTemplate;
 
     @Test
-    public void testRetrieveAllName() throws IOException {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_LIST), String.class);
+    public void testRetrieveAll() {
+        ParameterizedTypeReference<Map<Long, String>> responseType = new ParameterizedTypeReference<Map<Long, String>>() {
+        };
+        ResponseEntity<Map<Long, String>> response = restTemplate.exchange(
+                createURLWithPort(API_CUSTOMER_LIST), HttpMethod.GET, new HttpEntity<>(null), responseType);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<String> customers = mapper.readValue(response.getBody(), new TypeReference<List<String>>() {
-        });
+        Map<Long, String> customerMap = response.getBody();
 
-        Assert.assertTrue(customers.contains("John Smith"));
-        Assert.assertTrue(customers.contains("Grace Clarkson"));
-        Assert.assertTrue(customers.contains("Timothy Thompson"));
+        Assert.assertEquals("John Smith", customerMap.get(1L));
+        Assert.assertEquals("Grace Clayson", customerMap.get(2L));
     }
 
     @Test
@@ -65,8 +62,8 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(customerDetails);
 
         assertEquals("Grace", customerDetails.getName());
-        assertEquals("Clarkson", customerDetails.getSurname());
-        assertEquals("http://localhost:8083" + API_CUSTOMER_IMAGE + testID, customerDetails.getImageURL());
+        assertEquals("Clayson", customerDetails.getSurname());
+        assertEquals("http://localhost:" + port + API_CUSTOMER_IMAGE + testID, customerDetails.getImageURL());
     }
 
     @Test
@@ -149,7 +146,6 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
         ResponseEntity<CustomerDetails> getResponse = restTemplate.getForEntity(
                 createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
-        System.out.println(getResponse.getStatusCode());
         assertEquals(HttpStatus.NO_CONTENT, getResponse.getStatusCode());
     }
 

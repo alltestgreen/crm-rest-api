@@ -4,6 +4,9 @@ import com.abara.entity.Customer;
 import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
 import com.abara.service.CustomerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,40 +18,28 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.security.Principal;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CustomerController.class);
+
+    @Autowired
     private CustomerService customerService;
 
-    public CustomerController(CustomerService customerService) {
-        this.customerService = customerService;
-    }
-
     @GetMapping("/list")
-    public List<String> listNames() {
+    public Map<Long, String> listCustomers() {
+        LOG.debug("Retrieving all Customer Details");
         return customerService.listAllCustomer();
-    }
-
-    @GetMapping("/listHTML")
-    public String listHTML() {
-        StringBuilder sb = new StringBuilder("<html><body><table border=1>");
-        sb.append("<tr><td>Id</td><td>Name</td><td>Surname</td></tr>");
-        for (Customer customer : customerService.list()) {
-            sb.append("<tr>");
-            sb.append("<td>").append(customer.getId()).append("</td>");
-            sb.append("<td>").append(customer.getName()).append("</td>");
-            sb.append("<td>").append(customer.getSurname()).append("</td>");
-            sb.append("</tr>");
-        }
-        return sb.append("<table></body></html>").toString();
     }
 
     @GetMapping("/details/{customerId}")
     public ResponseEntity<CustomerDetails> details(HttpServletRequest request, @PathVariable Long customerId) throws MalformedURLException {
+        LOG.debug("Getting details of Customer by id: " + customerId);
+
         Optional<Customer> customerOptional = customerService.findById(customerId);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
@@ -62,6 +53,8 @@ public class CustomerController {
 
     @PostMapping("/create")
     public ResponseEntity<Void> create(Principal principal, @RequestBody Customer customer) {
+        LOG.debug("Creating Customer: " + customer);
+
         if (customer == null) return ResponseEntity.noContent().build();
         customer.setCreatedBy(principal.getName());
         Customer newCustomer = customerService.save(customer);
@@ -71,6 +64,8 @@ public class CustomerController {
 
     @PutMapping("/update")
     public ResponseEntity<Void> update(Principal principal, @RequestBody Customer customer) {
+        LOG.debug("Updating Customer: " + customer);
+
         if (customer == null) return ResponseEntity.noContent().build();
         Optional<Customer> existingCustomerOptional = customerService.findById(customer.getId());
         if (!existingCustomerOptional.isPresent()) return ResponseEntity.noContent().build();
@@ -90,6 +85,8 @@ public class CustomerController {
 
     @PostMapping("/delete/{customerId}")
     public ResponseEntity<Void> delete(@PathVariable Long customerId) {
+        LOG.debug("Deleting Customer by ID: " + customerId);
+
         if (customerId == null) return ResponseEntity.noContent().build();
         Optional<Customer> existingCustomer = customerService.findById(customerId);
         if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
@@ -99,19 +96,18 @@ public class CustomerController {
 
     @PostMapping("/uploadImage/{customerId}")
     public ResponseEntity<Void> uploadImage(@PathVariable Long customerId, @RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) return ResponseEntity.noContent().build();
-        if (customerId == null) return ResponseEntity.noContent().build();
+        LOG.debug("Uploading Customer Image by ID: {}", customerId);
+        if (file.isEmpty() || customerId == null) return ResponseEntity.noContent().build();
         Optional<Customer> existingCustomer = customerService.findById(customerId);
         if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
         Customer customer = existingCustomer.get();
 
         try {
-            System.out.println("Customer exist:" + customer);
             CustomerImage customerImage = new CustomerImage(file.getOriginalFilename(), file.getContentType(), file.getBytes());
             customer.setImage(customerImage);
             customerService.save(customer);
         } catch (IOException e) {
-            System.out.println("Unable to upload image " + e);
+            LOG.error("Unable to upload image:" + e, e);
         }
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/image/{id}").buildAndExpand(customer.getId()).toUri();
@@ -120,6 +116,8 @@ public class CustomerController {
 
     @GetMapping("/image/{customerId}")
     public ResponseEntity<byte[]> image(@PathVariable Long customerId) {
+        LOG.debug("Getting Customer Image by ID: {}", customerId);
+        if (customerId == null) return ResponseEntity.noContent().build();
         Optional<Customer> customerOptional = customerService.findById(customerId);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
@@ -127,7 +125,7 @@ public class CustomerController {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.valueOf(customer.getImage().getType()));
                 headers.setCacheControl(CacheControl.noCache().getHeaderValue());
-                return new ResponseEntity<>(customer.getImage().getImage(), headers, HttpStatus.OK);
+                return new ResponseEntity<>(customer.getImage().getData(), headers, HttpStatus.OK);
             }
         }
         return ResponseEntity.noContent().build();

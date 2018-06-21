@@ -1,6 +1,6 @@
 package com.abara.config;
 
-import com.abara.model.CustomUserDetails;
+import com.abara.model.AuthUserDetails;
 import com.abara.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +32,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private UserDetailsService userDetailsService(final UserRepository repository) {
-        return username -> new CustomUserDetails(repository.findByUsername(username));
+        return username -> new AuthUserDetails(repository.findByUsername(username));
     }
 }

@@ -29,15 +29,15 @@ public class CustomerImage {
 
     @Lob
     @NotEmpty
-    private byte[] image;
+    private byte[] data;
 
     CustomerImage() {
     }
 
-    public CustomerImage(@NotNull String name, @NotNull String type, @NotEmpty byte[] image) {
+    public CustomerImage(@NotNull String name, @NotNull String type, @NotEmpty byte[] data) {
         this.name = name;
         this.type = type;
-        this.image = image;
+        this.data = data;
     }
 
     public Long getId() {
@@ -60,12 +60,12 @@ public class CustomerImage {
         this.type = type;
     }
 
-    public byte[] getImage() {
-        return image;
+    public byte[] getData() {
+        return data;
     }
 
-    public void setImage(byte[] image) {
-        this.image = image;
+    public void setData(byte[] data) {
+        this.data = data;
     }
 
     @Override
