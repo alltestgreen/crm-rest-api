@@ -1,5 +1,7 @@
 package com.abara.model;
 
+import java.net.URI;
+
 public class CustomerDetails {
 
     private Long id;
@@ -8,7 +10,7 @@ public class CustomerDetails {
 
     private String surname;
 
-    private String imageURL;
+    private URI imageURI;
 
     private String createdBy;
 
@@ -17,11 +19,11 @@ public class CustomerDetails {
     CustomerDetails() {
     }
 
-    public CustomerDetails(Long id, String name, String surname, String imageURL, String createdBy, String modifiedBy) {
+    public CustomerDetails(Long id, String name, String surname, URI imageURI, String createdBy, String modifiedBy) {
         this.id = id;
         this.name = name;
         this.surname = surname;
-        this.imageURL = imageURL;
+        this.imageURI = imageURI;
         this.createdBy = createdBy;
         this.modifiedBy = modifiedBy;
     }
@@ -50,12 +52,12 @@ public class CustomerDetails {
         this.surname = surname;
     }
 
-    public String getImageURL() {
-        return imageURL;
+    public URI getImageURI() {
+        return imageURI;
     }
 
-    public void setImageURL(String imageURL) {
-        this.imageURL = imageURL;
+    public void setImageURI(URI imageURI) {
+        this.imageURI = imageURI;
     }
 
     public String getCreatedBy() {

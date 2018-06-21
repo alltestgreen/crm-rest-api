@@ -63,7 +63,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals("Grace", customerDetails.getName());
         assertEquals("Clayson", customerDetails.getSurname());
-        assertEquals("http://localhost:" + port + API_CUSTOMER_IMAGE + testID, customerDetails.getImageURL());
+        assertEquals("http://localhost:" + port + API_CUSTOMER_IMAGE + testID, customerDetails.getImageURI().toString());
     }
 
     @Test
@@ -87,7 +87,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         CustomerDetails customerDetails = getResponse.getBody();
         assertEquals(newCustomer.getName(), customerDetails.getName());
         assertEquals(newCustomer.getSurname(), customerDetails.getSurname());
-        assertNotNull(customerDetails.getImageURL());
+        assertNotNull(customerDetails.getImageURI().toString());
         assertNull(customerDetails.getModifiedBy());
         assertEquals(apiUser, customerDetails.getCreatedBy());
     }
@@ -126,7 +126,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(testName, updatedCustomerDetails.getName());
         assertEquals(testSurName, updatedCustomerDetails.getSurname());
-        assertNotNull(updatedCustomerDetails.getImageURL());
+        assertNotNull(updatedCustomerDetails.getImageURI().toString());
         assertNotNull(updatedCustomerDetails.getCreatedBy());
         assertEquals(apiUser, updatedCustomerDetails.getModifiedBy());
     }
@@ -172,7 +172,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
         CustomerDetails customerDetails = customerResponse.getBody();
         Assert.assertNotNull(customerDetails);
-        Assert.assertTrue(customerDetails.getImageURL().contains(API_CUSTOMER_IMAGE));
+        Assert.assertTrue(customerDetails.getImageURI().toString().contains(API_CUSTOMER_IMAGE));
     }
 
     @Test
@@ -201,7 +201,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
         CustomerDetails customerDetails = customerResponse.getBody();
         Assert.assertNotNull(customerDetails);
-        Assert.assertNull(customerDetails.getImageURL());
+        Assert.assertNull(customerDetails.getImageURI());
     }
 
 }

@@ -60,7 +60,7 @@ Returns `com.abara.model.CustomerDetails` object, includes a resource URL to the
     "id": 3,
     "name": "Timothy",
     "surname": "Thompson",
-    "imageURL": "http://localhost:8080/api/customer/image/3",
+    "imageURI": "http://localhost:8080/api/customer/image/3",
     "createdBy": "admin",
     "modifiedBy": null
 }

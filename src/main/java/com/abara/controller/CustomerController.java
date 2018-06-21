@@ -12,11 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
@@ -37,18 +34,17 @@ public class CustomerController {
     }
 
     @GetMapping("/details/{customerId}")
-    public ResponseEntity<CustomerDetails> details(HttpServletRequest request, @PathVariable Long customerId) throws MalformedURLException {
+    public ResponseEntity<CustomerDetails> details(@PathVariable Long customerId) {
         LOG.debug("Getting details of Customer by id: " + customerId);
 
         Optional<Customer> customerOptional = customerService.findById(customerId);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
-            String imageURL = null;
+            URI imageURI = null;
             if (customer.getImage() != null) {
-                URL url = new URL(request.getRequestURL().toString());
-                imageURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/api/customer/image/" + customer.getId();
+                imageURI = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/image/{id}").buildAndExpand(customer.getId()).toUri();
             }
-            CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), imageURL, customer.getCreatedBy(), customer.getModifiedBy());
+            CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), imageURI, customer.getCreatedBy(), customer.getModifiedBy());
             return ResponseEntity.ok(customerDetails);
         }
         return ResponseEntity.noContent().build();
