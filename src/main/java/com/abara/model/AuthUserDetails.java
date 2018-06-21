@@ -11,13 +11,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class CustomUserDetails implements UserDetails {
+public class AuthUserDetails implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
     private String password;
     private String username;
 
-    public CustomUserDetails(User user) {
+    public AuthUserDetails(User user) {
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.authorities = translate(user.getRoles());

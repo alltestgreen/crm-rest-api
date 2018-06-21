@@ -7,6 +7,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.Set;
 
 @Entity
@@ -15,9 +16,9 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
     @SequenceGenerator(
-            name="user_seq",
-            sequenceName="user_sequence",
-            allocationSize=20
+            name = "user_seq",
+            sequenceName = "user_sequence",
+            allocationSize = 20
     )
     private Long id;
 
@@ -31,7 +32,13 @@ public class User {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Role> roles;
 
-    User() {
+    public User() {
+    }
+
+    public User(String username, String password, Role role) {
+        this.username = username;
+        this.password = password;
+        this.roles = Collections.singleton(role);
     }
 
     public User(String username, String password, Set<Role> roles) {
@@ -42,6 +49,10 @@ public class User {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUsername() {

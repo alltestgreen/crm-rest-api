@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface CustomerRepository extends CrudRepository<Customer, Long> {
 
-    @Query(value = "SELECT CONCAT(NAME, ' ', SURNAME) AS FULLNAME FROM CUSTOMER", nativeQuery = true)
-    List<String> listAllCustomer();
+    @Query(value = "SELECT ID, CONCAT(NAME, ' ', SURNAME) AS FULL_NAME FROM CUSTOMER", nativeQuery = true)
+    List<Object[]> listAllCustomer();
 }

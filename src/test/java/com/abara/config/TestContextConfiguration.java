@@ -21,14 +21,11 @@ public class TestContextConfiguration {
     @Value("${oauth.grant-type}")
     private String grantType;
 
-    @Value("${oauth.user.username}")
+    @Value("${oauth.username}")
     private String apiUser;
 
-    @Value("${oauth.user.password}")
+    @Value("${oauth.password}")
     private String apiUserPassword;
-
-    @Value("${oauth.admin.username}")
-    private String adminUsername;
 
     @Value("${server.port}")
     private int port;

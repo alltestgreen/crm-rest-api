@@ -11,7 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public abstract class AbstractIntegrationTest {
 
     @LocalServerPort
-    private int port;
+    protected int port;
 
     protected String createURLWithPort(String uri) {
         return "http://localhost:" + port + uri;
