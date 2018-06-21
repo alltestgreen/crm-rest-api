@@ -9,7 +9,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.math.BigInteger;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,8 +41,8 @@ public class CustomerServiceTest {
 
     @Test
     public void listAllCustomer() {
-        Object[] customer1 = {BigInteger.valueOf(11), "Test Name 1"};
-        Object[] customer2 = {BigInteger.valueOf(22), "Test Name 2"};
+        Object[] customer1 = {11L, "Test Name 1"};
+        Object[] customer2 = {22L, "Test Name 2"};
 
         given(repository.listAllCustomer()).willReturn(Stream.of(customer1, customer2).collect(Collectors.toList()));
 

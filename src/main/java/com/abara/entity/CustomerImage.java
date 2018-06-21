@@ -3,11 +3,11 @@ package com.abara.entity;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 public class CustomerImage {
@@ -22,13 +22,16 @@ public class CustomerImage {
     private Long id;
 
     @NotNull
+    @Size(max = 256)
     private String name;
 
     @NotNull
+    @Size(max = 256)
     private String type;
 
     @Lob
     @NotEmpty
+    @Size(max = 1048576)
     private byte[] data;
 
     CustomerImage() {
@@ -81,7 +84,7 @@ public class CustomerImage {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        return ReflectionToStringBuilder.toStringExclude(this, "data");
     }
 
 }
