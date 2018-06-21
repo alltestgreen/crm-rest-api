@@ -45,7 +45,7 @@ public class CustomerController {
             Customer customer = customerOptional.get();
             URL url = new URL(request.getRequestURL().toString());
             String imageURL = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/api/customer/image/" + customer.getId();
-            CustomerDetails customerDetails = new CustomerDetails(customer.getName(), customer.getSurname(), imageURL, customer.getCreatedBy(), customer.getModifiedBy());
+            CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), imageURL, customer.getCreatedBy(), customer.getModifiedBy());
             return ResponseEntity.ok(customerDetails);
         }
         return ResponseEntity.noContent().build();

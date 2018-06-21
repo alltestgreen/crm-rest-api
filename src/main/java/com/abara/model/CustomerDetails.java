@@ -2,6 +2,8 @@ package com.abara.model;
 
 public class CustomerDetails {
 
+    private Long id;
+
     private String name;
 
     private String surname;
@@ -15,7 +17,8 @@ public class CustomerDetails {
     CustomerDetails() {
     }
 
-    public CustomerDetails(String name, String surname, String imageURL, String createdBy, String modifiedBy) {
+    public CustomerDetails(Long id, String name, String surname, String imageURL, String createdBy, String modifiedBy) {
+        this.id = id;
         this.name = name;
         this.surname = surname;
         this.imageURL = imageURL;
@@ -23,20 +26,12 @@ public class CustomerDetails {
         this.modifiedBy = modifiedBy;
     }
 
-    public String getCreatedBy() {
-        return createdBy;
+    public Long getId() {
+        return id;
     }
 
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public String getModifiedBy() {
-        return modifiedBy;
-    }
-
-    public void setModifiedBy(String modifiedBy) {
-        this.modifiedBy = modifiedBy;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -61,5 +56,21 @@ public class CustomerDetails {
 
     public void setImageURL(String imageURL) {
         this.imageURL = imageURL;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public String getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public void setModifiedBy(String modifiedBy) {
+        this.modifiedBy = modifiedBy;
     }
 }
