@@ -3,6 +3,8 @@ package com.abara.controller;
 import com.abara.entity.User;
 import com.abara.model.ApplicationUserDetails;
 import com.abara.service.UserService;
+import com.abara.validation.EntityValidator;
+import com.abara.validation.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,12 +27,13 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EntityValidator entityValidator;
+
     @GetMapping("/list")
     public List<ApplicationUserDetails> list() {
         LOG.debug("Retrieving all User Details");
-        List<ApplicationUserDetails> userDetailsList = new ArrayList<>();
-        userService.list().forEach(u -> userDetailsList.add(new ApplicationUserDetails(u.getId(), u.getUsername(), u.getRoles())));
-        return userDetailsList;
+        return userService.list();
     }
 
     @GetMapping("/details/{userId}")
@@ -47,20 +49,23 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Void> create(@RequestBody User user) {
+    public ResponseEntity<ValidationResult> create(@RequestBody User user) {
         LOG.debug("Creating User: " + user);
 
-        if (user == null) return ResponseEntity.noContent().build();
+        Optional<ValidationResult> validationResult = entityValidator.validate(user);
+        if (validationResult.isPresent()) {
+            return ResponseEntity.badRequest().body(validationResult.get());
+        }
+
         User newUser = userService.save(user);
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/details/{id}").buildAndExpand(newUser.getId()).toUri();
         return ResponseEntity.created(location).build();
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Void> update(@RequestBody User user) {
+    public ResponseEntity<ValidationResult> update(@RequestBody User user) {
         LOG.debug("Updating User: " + user);
 
-        if (user == null) return ResponseEntity.noContent().build();
         Optional<User> existingUserOptional = userService.findById(user.getId());
         if (!existingUserOptional.isPresent()) return ResponseEntity.noContent().build();
 
@@ -72,6 +77,11 @@ public class UserController {
         }
         existingUser.setRoles(user.getRoles());
 
+        Optional<ValidationResult> validationResult = entityValidator.validate(existingUser);
+        if (validationResult.isPresent()) {
+            return ResponseEntity.badRequest().body(validationResult.get());
+        }
+
         userService.save(existingUser);
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/details/{id}").buildAndExpand(existingUser.getId()).toUri();
@@ -82,9 +92,9 @@ public class UserController {
     public ResponseEntity<Void> delete(@PathVariable Long userId) {
         LOG.debug("Deleting User by ID: " + userId);
 
-        if (userId == null) return ResponseEntity.noContent().build();
         Optional<User> existingUser = userService.findById(userId);
         if (!existingUser.isPresent()) return ResponseEntity.noContent().build();
+
         userService.delete(userId);
         return ResponseEntity.ok().build();
     }

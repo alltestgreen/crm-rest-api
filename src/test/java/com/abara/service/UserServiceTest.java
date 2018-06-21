@@ -2,6 +2,7 @@ package com.abara.service;
 
 import com.abara.entity.Role;
 import com.abara.entity.User;
+import com.abara.model.ApplicationUserDetails;
 import com.abara.repository.UserRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,10 +55,18 @@ public class UserServiceTest {
 
         given(repository.findAll()).willReturn(Stream.of(user1, user2).collect(Collectors.toList()));
 
-        List<User> userList = service.list();
+        List<ApplicationUserDetails> userList = service.list();
         assertEquals(2, userList.size());
-        assertEquals(user1, userList.get(0));
-        assertEquals(user2, userList.get(1));
+
+        ApplicationUserDetails userDetails1 = userList.get(0);
+        ApplicationUserDetails userDetails2 = userList.get(1);
+
+        assertEquals(user1.getId(), userDetails1.getId());
+        assertEquals(user1.getUsername(), userDetails1.getUsername());
+        assertEquals(user1.getRoles(), userDetails1.getRoles());
+        assertEquals(user2.getId(), userDetails2.getId());
+        assertEquals(user2.getUsername(), userDetails2.getUsername());
+        assertEquals(user2.getRoles(), userDetails2.getRoles());
     }
 
     @Test

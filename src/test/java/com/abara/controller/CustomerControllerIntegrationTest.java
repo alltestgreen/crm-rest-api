@@ -4,6 +4,8 @@ import com.abara.common.AbstractIntegrationTest;
 import com.abara.entity.Customer;
 import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
+import com.abara.validation.ValidationResult;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.http.*;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -73,9 +76,9 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         CustomerImage testImage = new CustomerImage("name", "type", new byte[]{123});
         Customer newCustomer = new Customer(testName, testSurName, testImage);
 
-        ResponseEntity<Void> response = restTemplate.postForEntity(
+        ResponseEntity<ValidationResult> response = restTemplate.postForEntity(
                 createURLWithPort(API_CUSTOMER_CREATE),
-                new HttpEntity<>(newCustomer), Void.class);
+                new HttpEntity<>(newCustomer), ValidationResult.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();
@@ -90,6 +93,21 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(customerDetails.getImageURI().toString());
         assertNull(customerDetails.getModifiedBy());
         assertEquals(apiUser, customerDetails.getCreatedBy());
+    }
+
+    @Test
+    public void testCreateValidationFail() {
+        String invalidName = StringUtils.repeat("y", 270);
+        String invalidSurName = StringUtils.repeat("x", 270);
+        Customer newCustomer = new Customer(invalidName, invalidSurName, null);
+
+        try {
+            restTemplate.postForEntity(
+                    createURLWithPort(API_CUSTOMER_CREATE),
+                    new HttpEntity<>(newCustomer), ValidationResult.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+        }
     }
 
     @Test
@@ -112,9 +130,9 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         customer.setSurname(testSurName);
         customer.setImage(testImage);
 
-        ResponseEntity<Void> response = restTemplate.exchange(
+        ResponseEntity<ValidationResult> response = restTemplate.exchange(
                 createURLWithPort(API_CUSTOMER_UPDATE),
-                HttpMethod.PUT, new HttpEntity<>(customer), Void.class);
+                HttpMethod.PUT, new HttpEntity<>(customer), ValidationResult.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();
@@ -163,8 +181,8 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-        ResponseEntity<Void> uploadResponse = restTemplate.postForEntity(
-                createURLWithPort(API_CUSTOMER_IMAGE_UPLOAD + testID), new HttpEntity<>(map, headers), Void.class);
+        ResponseEntity<ValidationResult> uploadResponse = restTemplate.postForEntity(
+                createURLWithPort(API_CUSTOMER_IMAGE_UPLOAD + testID), new HttpEntity<>(map, headers), ValidationResult.class);
         assertEquals(HttpStatus.CREATED, uploadResponse.getStatusCode());
 
         ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(

@@ -4,6 +4,8 @@ import com.abara.entity.Customer;
 import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
 import com.abara.service.CustomerService;
+import com.abara.validation.EntityValidator;
+import com.abara.validation.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private EntityValidator entityValidator;
 
     @GetMapping("/list")
     public Map<Long, String> listCustomers() {
@@ -51,21 +56,25 @@ public class CustomerController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Void> create(Principal principal, @RequestBody Customer customer) {
+    public ResponseEntity<ValidationResult> create(Principal principal, @RequestBody Customer customer) {
         LOG.debug("Creating Customer: " + customer);
 
-        if (customer == null) return ResponseEntity.noContent().build();
+        Optional<ValidationResult> validationResult = entityValidator.validate(customer);
+        if (validationResult.isPresent()) {
+            return ResponseEntity.badRequest().body(validationResult.get());
+        }
+
         customer.setCreatedBy(principal.getName());
         Customer newCustomer = customerService.save(customer);
+
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/details/{id}").buildAndExpand(newCustomer.getId()).toUri();
         return ResponseEntity.created(location).build();
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Void> update(Principal principal, @RequestBody Customer customer) {
+    public ResponseEntity<ValidationResult> update(Principal principal, @RequestBody Customer customer) {
         LOG.debug("Updating Customer: " + customer);
 
-        if (customer == null) return ResponseEntity.noContent().build();
         Optional<Customer> existingCustomerOptional = customerService.findById(customer.getId());
         if (!existingCustomerOptional.isPresent()) return ResponseEntity.noContent().build();
 
@@ -79,6 +88,11 @@ public class CustomerController {
 
         existingCustomer.setModifiedBy(principal.getName());
 
+        Optional<ValidationResult> validationResult = entityValidator.validate(existingCustomer);
+        if (validationResult.isPresent()) {
+            return ResponseEntity.badRequest().body(validationResult.get());
+        }
+
         customerService.save(existingCustomer);
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/details/{id}").buildAndExpand(existingCustomer.getId()).toUri();
@@ -89,7 +103,6 @@ public class CustomerController {
     public ResponseEntity<Void> delete(@PathVariable Long customerId) {
         LOG.debug("Deleting Customer by ID: " + customerId);
 
-        if (customerId == null) return ResponseEntity.noContent().build();
         Optional<Customer> existingCustomer = customerService.findById(customerId);
         if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
         customerService.delete(customerId);
@@ -97,15 +110,21 @@ public class CustomerController {
     }
 
     @PostMapping("/image/upload/{customerId}")
-    public ResponseEntity<Void> uploadImage(@PathVariable Long customerId, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ValidationResult> uploadImage(@PathVariable Long customerId, @RequestParam("file") MultipartFile file) {
         LOG.debug("Uploading Customer Image by ID: {}", customerId);
-        if (file.isEmpty() || customerId == null) return ResponseEntity.noContent().build();
+
         Optional<Customer> existingCustomer = customerService.findById(customerId);
         if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
         Customer customer = existingCustomer.get();
 
         try {
             CustomerImage customerImage = new CustomerImage(file.getOriginalFilename(), file.getContentType(), file.getBytes());
+
+            Optional<ValidationResult> validationResult = entityValidator.validate(customerImage);
+            if (validationResult.isPresent()) {
+                return ResponseEntity.badRequest().body(validationResult.get());
+            }
+
             customer.setImage(customerImage);
             customerService.save(customer);
         } catch (IOException e) {
@@ -119,7 +138,7 @@ public class CustomerController {
     @GetMapping("/image/{customerId}")
     public ResponseEntity<byte[]> image(@PathVariable Long customerId) {
         LOG.debug("Getting Customer Image by ID: {}", customerId);
-        if (customerId == null) return ResponseEntity.noContent().build();
+
         Optional<Customer> customerOptional = customerService.findById(customerId);
         if (customerOptional.isPresent()) {
             Customer customer = customerOptional.get();
@@ -136,17 +155,16 @@ public class CustomerController {
     @PostMapping("/image/delete/{customerId}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long customerId) {
         LOG.debug("Deleting Customer Image by ID: {}", customerId);
-        if (customerId == null) return ResponseEntity.noContent().build();
+
         Optional<Customer> existingCustomer = customerService.findById(customerId);
-        if (existingCustomer.isPresent()) {
-            Customer customer = existingCustomer.get();
-            if (customer.getImage() != null) {
-                customer.setImage(null);
-                customerService.save(customer);
-                return ResponseEntity.ok().build();
-            }
+        if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
+
+        Customer customer = existingCustomer.get();
+        if (customer.getImage() != null) {
+            customer.setImage(null);
+            customerService.save(customer);
         }
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
 }
