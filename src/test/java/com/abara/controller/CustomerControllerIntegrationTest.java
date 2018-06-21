@@ -40,10 +40,9 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testRetrieveAll() {
-        ParameterizedTypeReference<Map<Long, String>> responseType = new ParameterizedTypeReference<Map<Long, String>>() {
-        };
         ResponseEntity<Map<Long, String>> response = restTemplate.exchange(
-                createURLWithPort(API_CUSTOMER_LIST), HttpMethod.GET, new HttpEntity<>(null), responseType);
+                createURLWithPort(API_CUSTOMER_LIST), HttpMethod.GET, new HttpEntity<>(null), new ParameterizedTypeReference<Map<Long, String>>() {
+                });
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         Map<Long, String> customerMap = response.getBody();

@@ -45,6 +45,7 @@ public class Role {
 
     @Override
     public boolean equals(Object that) {
+        if (getClass() != that.getClass()) return false;
         return EqualsBuilder.reflectionEquals(this, that, "id");
     }
 
