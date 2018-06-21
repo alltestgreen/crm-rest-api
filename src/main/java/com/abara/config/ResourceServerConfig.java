@@ -11,7 +11,9 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.headers().frameOptions().disable().and()
+        http.headers()
+                .xssProtection().and()
+                .frameOptions().disable().and()
                 .authorizeRequests()
                 .antMatchers("/api/customer/**").hasRole("USER")
                 .antMatchers("/api/user/**").hasRole("ADMIN");

@@ -4,6 +4,7 @@ import com.abara.common.AbstractIntegrationTest;
 import com.abara.entity.Role;
 import com.abara.entity.User;
 import com.abara.model.ApplicationUserDetails;
+import com.abara.validation.ValidationResult;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,9 +77,9 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         Set<Role> roles = Stream.of(testRole1, testRole2).collect(Collectors.toSet());
         User newUser = new User(testUserName, testPassword, roles);
 
-        ResponseEntity<Void> response = restTemplate.postForEntity(
+        ResponseEntity<ValidationResult> response = restTemplate.postForEntity(
                 createURLWithPort(API_USER_CREATE),
-                new HttpEntity<>(newUser), Void.class);
+                new HttpEntity<>(newUser), ValidationResult.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();
@@ -113,9 +114,9 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         userRoles.add(adminRole);
         user.setRoles(userRoles);
 
-        ResponseEntity<Void> response = restTemplate.exchange(
+        ResponseEntity<ValidationResult> response = restTemplate.exchange(
                 createURLWithPort(API_USER_UPDATE),
-                HttpMethod.PUT, new HttpEntity<>(user), Void.class);
+                HttpMethod.PUT, new HttpEntity<>(user), ValidationResult.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();

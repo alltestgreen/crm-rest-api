@@ -45,7 +45,7 @@ Returns a map of id and full names containing all existing customer:
 }
 ```
 
-### 2. Get full customer information, including a photo URL
+### 2. Get full customer information, including a photo URI
 
 Expects Path variable with customer id.
 
@@ -148,6 +148,20 @@ Expects Path variable with customer id.
 POST http://localhost:8080/api/customer/image/delete/2
 ```
 Upon success, **HTTP 200 OK** status returned.
+
+***
+
+When a POST/PUT entity fails validation, a `com.abara.validation.ValidationResult` object returned
+
+```
+{
+    "entityName": "Customer",
+    "errors": [
+        "name:size must be between 0 and 256",
+        "surname:size must be between 0 and 256"
+    ]
+}
+```
 
 # User services
 
@@ -273,3 +287,17 @@ Upon success, **HTTP 200 OK** status returned.
 ### 6. Change admin status. 
 
 This can be achieved by Update user request specifying the new set of roles.
+
+
+***
+
+When a POST/PUT entity fails validation, a `com.abara.validation.ValidationResult` object returned
+
+```
+{
+    "entityName": "User",
+    "errors": [
+        "username:size must be between 0 and 256",
+    ]
+}
+```

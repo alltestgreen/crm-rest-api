@@ -7,6 +7,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Collections;
 import java.util.Set;
 
@@ -24,6 +25,7 @@ public class User {
 
     @Column(unique = true)
     @NotNull
+    @Size(max = 256)
     private String username;
 
     @NotNull

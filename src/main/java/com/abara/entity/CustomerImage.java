@@ -8,6 +8,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 public class CustomerImage {
@@ -22,13 +23,16 @@ public class CustomerImage {
     private Long id;
 
     @NotNull
+    @Size(max = 256)
     private String name;
 
     @NotNull
+    @Size(max = 256)
     private String type;
 
     @Lob
     @NotEmpty
+    @Size(max = 1048576)
     private byte[] data;
 
     CustomerImage() {

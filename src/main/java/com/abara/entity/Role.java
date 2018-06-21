@@ -7,6 +7,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 public class Role {
@@ -21,6 +22,7 @@ public class Role {
     private Long id;
 
     @NotNull
+    @Size(max = 16)
     private String name;
 
     Role() {

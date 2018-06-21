@@ -7,6 +7,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
 public class Customer {
@@ -21,16 +22,20 @@ public class Customer {
     private Long id;
 
     @NotNull
+    @Size(max = 256)
     private String name;
 
     @NotNull
+    @Size(max = 256)
     private String surname;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private CustomerImage image;
 
+    @Size(max = 256)
     private String createdBy;
 
+    @Size(max = 256)
     private String modifiedBy;
 
     public Customer() {
