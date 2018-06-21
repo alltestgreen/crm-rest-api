@@ -36,10 +36,10 @@ public class UserServiceTest {
     @Test
     public void save() {
         String username = "test";
-        String password = "testpass";
+        String password = "testPassword";
         User user = new User(username, password, new Role("USER"));
 
-        given(passwordEncoder.encode(password)).willReturn("testencoded");
+        given(passwordEncoder.encode(password)).willReturn("testEncoded");
 
         service.save(user);
 

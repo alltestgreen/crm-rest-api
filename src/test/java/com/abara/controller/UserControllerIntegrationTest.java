@@ -31,11 +31,6 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String API_USER_UPDATE = "/api/user/update";
     private static final String API_USER_DELETE = "/api/user/delete/";
 
-    static {
-        System.setProperty("oauth.username", "admin");
-        System.setProperty("oauth.password", "admin");
-    }
-
     @Autowired
     private OAuth2RestOperations restTemplate;
 
@@ -44,10 +39,10 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testRetrieveAll() {
-        ParameterizedTypeReference<List<ApplicationUserDetails>> responseType = new ParameterizedTypeReference<List<ApplicationUserDetails>>() {
-        };
         ResponseEntity<List<ApplicationUserDetails>> response = restTemplate.exchange(
-                createURLWithPort(API_USER_LIST), HttpMethod.GET, new HttpEntity<>(null), responseType);
+                createURLWithPort(API_USER_LIST), HttpMethod.GET, new HttpEntity<>(null),
+                new ParameterizedTypeReference<List<ApplicationUserDetails>>() {
+                });
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<ApplicationUserDetails> users = response.getBody();
