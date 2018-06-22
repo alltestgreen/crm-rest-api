@@ -7,8 +7,11 @@ import java.util.Map;
 
 public class ValidationResult {
 
-    private final String entityName;
-    private final Map<String, String> errors;
+    private String entityName;
+    private Map<String, String> errors;
+
+    ValidationResult() {
+    }
 
     ValidationResult(String entityName, Map<String, String> errors) {
         this.entityName = entityName;

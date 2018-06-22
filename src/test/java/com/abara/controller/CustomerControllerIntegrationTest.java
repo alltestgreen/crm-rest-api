@@ -5,6 +5,7 @@ import com.abara.entity.Customer;
 import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
 import com.abara.validation.ValidationResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,6 +41,9 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private OAuth2RestOperations restTemplate;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     @Test
     public void testRetrieveAll() {
@@ -95,18 +99,25 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(apiUser, customerDetails.getCreatedBy());
     }
 
-    @Test
-    public void testCreateValidationFail() {
+    @Test(expected = HttpClientErrorException.class)
+    public void testCreateValidationFail() throws IOException {
         String invalidName = StringUtils.repeat("y", 270);
-        String invalidSurName = StringUtils.repeat("x", 270);
-        Customer newCustomer = new Customer(invalidName, invalidSurName, null);
+        String invalidSurName = StringUtils.repeat("y", 270);
+        Customer customer = new Customer(invalidName, invalidSurName, null);
 
         try {
-            restTemplate.postForEntity(
-                    createURLWithPort(API_CUSTOMER_CREATE),
-                    new HttpEntity<>(newCustomer), ValidationResult.class);
+            restTemplate.postForEntity(createURLWithPort(API_CUSTOMER_CREATE),
+                    new HttpEntity<>(customer), ValidationResult.class);
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+
+            ValidationResult validationResult = mapper.readValue(e.getResponseBodyAsString(), ValidationResult.class);
+            assertTrue(validationResult.hasErrors());
+            assertEquals(customer.getClass().getSimpleName(), validationResult.getEntityName());
+            assertEquals(2, validationResult.getErrors().size());
+            assertEquals("size must be between 0 and 256", validationResult.getErrors().get("name"));
+            assertEquals("size must be between 0 and 256", validationResult.getErrors().get("surname"));
+            throw e;
         }
     }
 
@@ -147,6 +158,27 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(updatedCustomerDetails.getImageURI().toString());
         assertNotNull(updatedCustomerDetails.getCreatedBy());
         assertEquals(apiUser, updatedCustomerDetails.getModifiedBy());
+    }
+
+    @Test(expected = HttpClientErrorException.class)
+    public void testUpdateValidationFail() throws IOException {
+        Long testID = 1L;
+        String invalidName = StringUtils.repeat("y", 270);
+        Customer customer = new Customer(invalidName, "surname", null);
+        customer.setId(testID);
+
+        try {
+            restTemplate.put(createURLWithPort(API_CUSTOMER_UPDATE), new HttpEntity<>(customer));
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+
+            ValidationResult validationResult = mapper.readValue(e.getResponseBodyAsString(), ValidationResult.class);
+            assertTrue(validationResult.hasErrors());
+            assertEquals(customer.getClass().getSimpleName(), validationResult.getEntityName());
+            assertEquals(1, validationResult.getErrors().size());
+            assertEquals("size must be between 0 and 256", validationResult.getErrors().get("name"));
+            throw e;
+        }
     }
 
     @Test
