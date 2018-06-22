@@ -13,9 +13,9 @@ import java.util.Set;
 
 public class AuthUserDetails implements UserDetails {
 
-    private Collection<? extends GrantedAuthority> authorities;
-    private String password;
-    private String username;
+    private final Collection<? extends GrantedAuthority> authorities;
+    private final String password;
+    private final String username;
 
     public AuthUserDetails(User user) {
         this.username = user.getUsername();

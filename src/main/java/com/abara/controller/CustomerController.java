@@ -129,6 +129,7 @@ public class CustomerController {
             customerService.save(customer);
         } catch (IOException e) {
             LOG.error("Unable to upload image:" + e, e);
+            return ResponseEntity.badRequest().build();
         }
 
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/image/{id}").buildAndExpand(customer.getId()).toUri();

@@ -5,6 +5,8 @@ import com.abara.entity.Role;
 import com.abara.entity.User;
 import com.abara.model.ApplicationUserDetails;
 import com.abara.validation.ValidationResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
+import org.springframework.web.client.HttpClientErrorException;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,6 +42,9 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     @Test
     public void testRetrieveAll() {
@@ -94,10 +102,31 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         assertEquals(roles, createdUser.getRoles());
     }
 
+    @Test(expected = HttpClientErrorException.class)
+    public void testCreateValidationFail() throws IOException {
+        String invalidName = StringUtils.repeat("y", 270);
+        User user = new User(invalidName, "testPassword", Collections.emptySet());
+
+        try {
+            restTemplate.postForEntity(createURLWithPort(API_USER_CREATE),
+                    new HttpEntity<>(user), ValidationResult.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+
+            ValidationResult validationResult = mapper.readValue(e.getResponseBodyAsString(), ValidationResult.class);
+            assertTrue(validationResult.hasErrors());
+            assertEquals(user.getClass().getSimpleName(), validationResult.getEntityName());
+            assertEquals(1, validationResult.getErrors().size());
+            assertEquals("size must be between 0 and 256", validationResult.getErrors().get("username"));
+            throw e;
+        }
+    }
+
     @Test
     public void testUpdate() {
         Long testID = 3L;
         String testUsername = "James";
+        String testPassword = "pass";
         Role adminRole = new Role("ADMIN");
 
         ResponseEntity<ApplicationUserDetails> customerResponse = restTemplate.getForEntity(
@@ -110,6 +139,7 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         User user = new User();
         user.setId(userDetails.getId());
         user.setUsername(testUsername);
+        user.setPassword(testPassword);
         Set<Role> userRoles = userDetails.getRoles();
         userRoles.add(adminRole);
         user.setRoles(userRoles);
@@ -128,6 +158,27 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(testUsername, updatedUserDetails.getUsername());
         assertEquals(userRoles, updatedUserDetails.getRoles());
+    }
+
+    @Test(expected = HttpClientErrorException.class)
+    public void testUpdateValidationFail() throws IOException {
+        Long testID = 2L;
+        String invalidName = StringUtils.repeat("y", 270);
+        User user = new User(invalidName, "testPassword", Collections.emptySet());
+        user.setId(testID);
+
+        try {
+            restTemplate.put(createURLWithPort(API_USER_UPDATE), new HttpEntity<>(user));
+        } catch (HttpClientErrorException e) {
+            assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+
+            ValidationResult validationResult = mapper.readValue(e.getResponseBodyAsString(), ValidationResult.class);
+            assertTrue(validationResult.hasErrors());
+            assertEquals(user.getClass().getSimpleName(), validationResult.getEntityName());
+            assertEquals(1, validationResult.getErrors().size());
+            assertEquals("size must be between 0 and 256", validationResult.getErrors().get("username"));
+            throw e;
+        }
     }
 
     @Test

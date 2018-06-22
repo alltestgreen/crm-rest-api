@@ -10,6 +10,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -42,7 +43,9 @@ public class EntityValidatorTest {
 
         assertTrue(validationResultOptional.isPresent());
         ValidationResult validationResult = validationResultOptional.get();
-        assertEquals(1, validationResult.getErrors().size());
-        assertEquals(errorMessage, validationResult.getErrors().get(property));
+        assertTrue(validationResult.hasErrors());
+        Map<String, String> errors = validationResult.getErrors();
+        assertEquals(1, errors.size());
+        assertEquals(errorMessage, errors.get(property));
     }
 }
