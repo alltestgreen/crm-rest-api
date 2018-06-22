@@ -22,12 +22,12 @@ http://localhost:8080/oauth/token?grant_type=password&username=admin&password=ad
 
 After receiving the token, it is required in the following requests. Expiration is configurable in properties.
 ```
-http://localhost:8080/api/customer/data/1?access_token=95a662ba-a359-4c48-b3cf-d7ef60b0165e
+http://localhost:8080/api/customer/details/1?access_token=95a662ba-a359-4c48-b3cf-d7ef60b0165e
 ``` 
 
 # Customer services
 
-All endpoint is under **/api/customer/** and requires **USER** role to be accessed.
+All endpoint is under **/api/customer/** and requires **[USER]** role to be accessed.
 
 ### 1. List all customers in the database.
 
@@ -165,7 +165,7 @@ When a POST/PUT entity fails validation, `com.abara.validation.ValidationResult`
 
 # User services
 
-All endpoint is under **/api/user/** and requires **ADMIN** role to be accessed.
+All endpoint is under **/api/user/** and requires **[ADMIN]** role to be accessed.
 
 ### 1. List users.
 
@@ -173,7 +173,7 @@ All endpoint is under **/api/user/** and requires **ADMIN** role to be accessed.
 GET http://localhost:8080/api/user/list
 ```
 
-Returns a list of `com.abara.model.ApplicationUserDetails` containing all existing user:
+Returns a list of `com.abara.model.ApplicationUserDetails` containing all existing user (excluding password):
 
 ```
 [
@@ -286,8 +286,7 @@ Upon success, **HTTP 200 OK** status returned.
 
 ### 6. Change admin status. 
 
-This can be achieved by Update user request specifying the new set of roles.
-
+This can be achieved by [Update user request](#4.-update-users.) specifying the new set of roles in the request bodyó.
 
 ***
 
