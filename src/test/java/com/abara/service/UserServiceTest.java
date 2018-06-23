@@ -4,6 +4,9 @@ import com.abara.entity.Role;
 import com.abara.entity.User;
 import com.abara.model.ApplicationUserDetails;
 import com.abara.repository.UserRepository;
+import com.abara.validation.EntityValidator;
+import com.abara.validation.ValidationException;
+import com.abara.validation.ValidationResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -11,16 +14,16 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
@@ -31,21 +34,32 @@ public class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private EntityValidator entityValidator;
+
     @InjectMocks
     private UserServiceImpl service;
 
     @Test
-    public void save() {
+    public void create() throws ValidationException {
+        Long testId = 2L;
         String username = "test";
         String password = "testPassword";
         User user = new User(username, password, new Role("USER"));
 
+        given(entityValidator.validate(user)).willReturn(Optional.empty());
         given(passwordEncoder.encode(password)).willReturn("testEncoded");
+        User userMock = mock(User.class);
+        given(userMock.getId()).willReturn(testId);
+        given(repository.save(user)).willReturn(userMock);
 
-        service.save(user);
+        Long createdId = service.create(user);
 
+        verify(entityValidator, times(1)).validate(user);
         verify(passwordEncoder, times(1)).encode(password);
         verify(repository, times(1)).save(user);
+
+        assertEquals(testId, createdId);
     }
 
     @Test
@@ -70,23 +84,66 @@ public class UserServiceTest {
     }
 
     @Test
-    public void findById() {
+    public void getDetailsById() {
         Long userId = 77L;
         User user = new User("test", "test", new Role("USER"));
 
         given(repository.findById(userId)).willReturn(Optional.of(user));
 
-        Optional<User> result = service.findById(userId);
-        assertTrue(result.isPresent());
-        assertEquals(user, result.get());
+        ApplicationUserDetails userDetails = service.getDetailsById(userId);
+
+        assertNotNull(userDetails);
+        assertEquals(user.getId(), userDetails.getId());
+        assertEquals(user.getUsername(), userDetails.getUsername());
+        assertEquals(user.getRoles(), userDetails.getRoles());
+    }
+
+    @Test
+    public void update() throws ValidationException {
+        Long userId = 77L;
+        User existingUser = new User("test1", "test1", new Role("USER"));
+        existingUser.setId(userId);
+        User updateUser = new User("test2", "test2", new Role("ADMIN"));
+        updateUser.setId(userId);
+
+        given(repository.findById(userId)).willReturn(Optional.of(existingUser));
+        given(repository.save(existingUser)).willReturn(existingUser);
+
+        Long updatedId = service.update(updateUser);
+
+        verify(repository, times(1)).save(updateUser);
+
+        assertEquals(userId, updatedId);
     }
 
     @Test
     public void delete() {
         Long userId = 77L;
+        User user = new User("test", "test", new Role("USER"));
+
+        given(repository.findById(userId)).willReturn(Optional.of(user));
 
         service.delete(userId);
 
         verify(repository, times(1)).deleteById(userId);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void testEntityNotFound() {
+        Long userId = 77L;
+
+        given(repository.findById(userId)).willReturn(Optional.empty());
+
+        service.delete(userId);
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testEntityNotValid() throws ValidationException {
+        User user = mock(User.class);
+        ValidationResult mockValidationResult = mock(ValidationResult.class);
+
+        given(entityValidator.validate(user)).willReturn(Optional.of(mockValidationResult));
+
+        service.create(user);
     }
 }

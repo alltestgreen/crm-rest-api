@@ -3,7 +3,7 @@ package com.abara.controller;
 import com.abara.entity.User;
 import com.abara.model.ApplicationUserDetails;
 import com.abara.service.UserService;
-import com.abara.validation.EntityValidator;
+import com.abara.validation.ValidationException;
 import com.abara.validation.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +14,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @RestController
 @RequestMapping("/api/user")
@@ -27,75 +24,51 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private EntityValidator entityValidator;
-
     @GetMapping("/list")
     public List<ApplicationUserDetails> list() {
         LOG.debug("Retrieving all User Details");
+
         return userService.list();
     }
 
-    @GetMapping("/details/{userId}")
-    public ResponseEntity<ApplicationUserDetails> details(@PathVariable Long userId) {
-        LOG.debug("Getting details of User by id: " + userId);
+    @GetMapping("/details/{id}")
+    public ResponseEntity<ApplicationUserDetails> details(@PathVariable Long id) {
+        LOG.debug("Getting details of User by id: " + id);
 
-        Optional<User> userOptional = userService.findById(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            return ResponseEntity.ok(new ApplicationUserDetails(user.getId(), user.getUsername(), user.getRoles()));
-        }
-        return ResponseEntity.noContent().build();
+        ApplicationUserDetails userDetails = userService.getDetailsById(id);
+        return ResponseEntity.ok(userDetails);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ValidationResult> create(@RequestBody User user) {
+    public ResponseEntity<ValidationResult> create(@RequestBody User user) throws ValidationException {
         LOG.debug("Creating User: " + user);
 
-        Optional<ValidationResult> validationResult = entityValidator.validate(user);
-        if (validationResult.isPresent()) {
-            return ResponseEntity.badRequest().body(validationResult.get());
-        }
+        Long id = userService.create(user);
 
-        User newUser = userService.save(user);
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/details/{id}").buildAndExpand(newUser.getId()).toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(buildResourceUrl(id)).build();
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ValidationResult> update(@RequestBody User user) {
+    public ResponseEntity<ValidationResult> update(@RequestBody User user) throws ValidationException {
         LOG.debug("Updating User: " + user);
 
-        Optional<User> existingUserOptional = userService.findById(user.getId());
-        if (!existingUserOptional.isPresent()) return ResponseEntity.noContent().build();
+        Long id = userService.update(user);
 
-        User existingUser = existingUserOptional.get();
-
-        existingUser.setUsername(user.getUsername());
-        if (isNotBlank(user.getPassword())) {
-            existingUser.setPassword(user.getPassword());
-        }
-        existingUser.setRoles(user.getRoles());
-
-        Optional<ValidationResult> validationResult = entityValidator.validate(existingUser);
-        if (validationResult.isPresent()) {
-            return ResponseEntity.badRequest().body(validationResult.get());
-        }
-
-        userService.save(existingUser);
-
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/details/{id}").buildAndExpand(existingUser.getId()).toUri();
-        return ResponseEntity.ok().location(location).build();
+        return ResponseEntity.ok().location(buildResourceUrl(id)).build();
     }
 
-    @PostMapping("/delete/{userId}")
-    public ResponseEntity<Void> delete(@PathVariable Long userId) {
-        LOG.debug("Deleting User by ID: " + userId);
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        LOG.debug("Deleting User by ID: " + id);
 
-        Optional<User> existingUser = userService.findById(userId);
-        if (!existingUser.isPresent()) return ResponseEntity.noContent().build();
-
-        userService.delete(userId);
+        userService.delete(id);
         return ResponseEntity.ok().build();
+    }
+
+    private URI buildResourceUrl(Long id) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/user/details/{id}")
+                .buildAndExpand(id)
+                .toUri();
     }
 }

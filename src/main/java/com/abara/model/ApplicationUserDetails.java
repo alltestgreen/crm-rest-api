@@ -1,6 +1,7 @@
 package com.abara.model;
 
 import com.abara.entity.Role;
+import com.abara.entity.User;
 
 import java.util.Set;
 
@@ -19,6 +20,10 @@ public class ApplicationUserDetails {
         this.id = id;
         this.username = username;
         this.roles = roles;
+    }
+
+    public static ApplicationUserDetails fromUser(User user) {
+        return new ApplicationUserDetails(user.getId(), user.getUsername(), user.getRoles());
     }
 
     public Long getId() {

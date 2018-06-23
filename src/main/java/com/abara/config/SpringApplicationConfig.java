@@ -52,8 +52,8 @@ public class SpringApplicationConfig {
             customerService.save(customer2);
             customerService.save(customer3);
 
-            userService.save(new User("admin", "admin", Stream.of(new Role("USER"), new Role("ADMIN")).collect(Collectors.toSet())));
-            userService.save(new User("user", "user", new Role("USER")));
+            userService.create(new User("admin", "admin", Stream.of(new Role("USER"), new Role("ADMIN")).collect(Collectors.toSet())));
+            userService.create(new User("user", "user", new Role("USER")));
         };
     }
 

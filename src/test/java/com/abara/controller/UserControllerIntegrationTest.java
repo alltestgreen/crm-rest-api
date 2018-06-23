@@ -77,6 +77,14 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void testRetrieveNonExistingUserById() {
+        Long testID = 99L;
+        ResponseEntity<ApplicationUserDetails> response = restTemplate.getForEntity(
+                createURLWithPort(API_USER_DETAILS + testID), ApplicationUserDetails.class);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
     public void testCreate() {
         String testUserName = "Cassie";
         String testPassword = "P@ssw0rd";
