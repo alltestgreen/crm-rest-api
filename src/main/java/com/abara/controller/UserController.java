@@ -3,7 +3,6 @@ package com.abara.controller;
 import com.abara.entity.User;
 import com.abara.model.ApplicationUserDetails;
 import com.abara.service.UserService;
-import com.abara.validation.ValidationException;
 import com.abara.validation.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +39,7 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ValidationResult> create(@RequestBody User user) throws ValidationException {
+    public ResponseEntity<ValidationResult> create(@RequestBody User user) {
         LOG.debug("Creating User: " + user);
 
         Long id = userService.create(user);
@@ -49,7 +48,7 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ValidationResult> update(@RequestBody User user) throws ValidationException {
+    public ResponseEntity<ValidationResult> update(@RequestBody User user) {
         LOG.debug("Updating User: " + user);
 
         Long id = userService.update(user);

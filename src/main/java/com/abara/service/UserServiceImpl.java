@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
     private EntityValidator entityValidator;
 
     @Override
-    public Long create(User user) throws ValidationException {
+    public Long create(User user) {
 
         Optional<ValidationResult> validationResult = entityValidator.validate(user);
         if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Long update(User user) throws ValidationException {
+    public Long update(User user) {
 
         Optional<User> userOptional = userRepository.findById(user.getId());
         if (!userOptional.isPresent()) throw new EntityNotFoundException("Could not find User by ID: " + user.getId());

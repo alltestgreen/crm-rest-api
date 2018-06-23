@@ -41,17 +41,17 @@ public class UserServiceTest {
     private UserServiceImpl service;
 
     @Test
-    public void create() throws ValidationException {
-        Long testId = 2L;
+    public void create() {
+        Long userID = 2L;
         String username = "test";
         String password = "testPassword";
         User user = new User(username, password, new Role("USER"));
 
         given(entityValidator.validate(user)).willReturn(Optional.empty());
         given(passwordEncoder.encode(password)).willReturn("testEncoded");
-        User userMock = mock(User.class);
-        given(userMock.getId()).willReturn(testId);
-        given(repository.save(user)).willReturn(userMock);
+        User mock = mock(User.class);
+        given(mock.getId()).willReturn(userID);
+        given(repository.save(user)).willReturn(mock);
 
         Long createdId = service.create(user);
 
@@ -59,7 +59,7 @@ public class UserServiceTest {
         verify(passwordEncoder, times(1)).encode(password);
         verify(repository, times(1)).save(user);
 
-        assertEquals(testId, createdId);
+        assertEquals(userID, createdId);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void update() throws ValidationException {
+    public void update() {
         Long userId = 77L;
         User existingUser = new User("test1", "test1", new Role("USER"));
         existingUser.setId(userId);
@@ -138,7 +138,7 @@ public class UserServiceTest {
     }
 
     @Test(expected = ValidationException.class)
-    public void testEntityNotValid() throws ValidationException {
+    public void testEntityNotValid() {
         User user = mock(User.class);
         ValidationResult mockValidationResult = mock(ValidationResult.class);
 
