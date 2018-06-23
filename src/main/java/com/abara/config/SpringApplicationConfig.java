@@ -44,16 +44,12 @@ public class SpringApplicationConfig {
             Customer customer2 = new Customer("Grace", "Clayson", customerImage2);
             Customer customer3 = new Customer("Timothy", "Thompson", null);
 
-            customer1.setCreatedBy("admin");
-            customer2.setCreatedBy("admin");
-            customer3.setCreatedBy("admin");
+            customerService.create(customer1, "admin");
+            customerService.create(customer2, "admin");
+            customerService.create(customer3, "admin");
 
-            customerService.save(customer1);
-            customerService.save(customer2);
-            customerService.save(customer3);
-
-            userService.save(new User("admin", "admin", Stream.of(new Role("USER"), new Role("ADMIN")).collect(Collectors.toSet())));
-            userService.save(new User("user", "user", new Role("USER")));
+            userService.create(new User("admin", "admin", Stream.of(new Role("USER"), new Role("ADMIN")).collect(Collectors.toSet())));
+            userService.create(new User("user", "user", new Role("USER")));
         };
     }
 

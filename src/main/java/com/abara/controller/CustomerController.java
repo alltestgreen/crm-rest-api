@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -32,140 +31,90 @@ public class CustomerController {
     @Autowired
     private EntityValidator entityValidator;
 
-    @GetMapping("/list")
-    public Map<Long, String> listCustomers() {
-        LOG.debug("Retrieving all Customer Details");
-        return customerService.listAllCustomer();
-    }
-
-    @GetMapping("/details/{customerId}")
-    public ResponseEntity<CustomerDetails> details(@PathVariable Long customerId) {
-        LOG.debug("Getting details of Customer by id: " + customerId);
-
-        Optional<Customer> customerOptional = customerService.findById(customerId);
-        if (customerOptional.isPresent()) {
-            Customer customer = customerOptional.get();
-            URI imageURI = null;
-            if (customer.getImage() != null) {
-                imageURI = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/image/{id}").buildAndExpand(customer.getId()).toUri();
-            }
-            CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), imageURI, customer.getCreatedBy(), customer.getModifiedBy());
-            return ResponseEntity.ok(customerDetails);
-        }
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping("/create")
     public ResponseEntity<ValidationResult> create(Principal principal, @RequestBody Customer customer) {
         LOG.debug("Creating Customer: " + customer);
 
-        Optional<ValidationResult> validationResult = entityValidator.validate(customer);
-        if (validationResult.isPresent()) {
-            return ResponseEntity.badRequest().body(validationResult.get());
-        }
+        Long id = customerService.create(customer, principal.getName());
 
-        customer.setCreatedBy(principal.getName());
-        Customer newCustomer = customerService.save(customer);
-
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/details/{id}").buildAndExpand(newCustomer.getId()).toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(buildResourceUrl(id)).build();
     }
+
+    @GetMapping("/list")
+    public Map<Long, String> list() {
+        LOG.debug("Retrieving all Customer Details");
+
+        return customerService.list();
+    }
+
+    @GetMapping("/details/{id}")
+    public ResponseEntity<CustomerDetails> details(@PathVariable Long id) {
+        LOG.debug("Getting details of Customer by id: " + id);
+
+        CustomerDetails customerDetails = customerService.getDetailsById(id, buildImageResourceUrl(id));
+        return ResponseEntity.ok(customerDetails);
+    }
+
 
     @PutMapping("/update")
     public ResponseEntity<ValidationResult> update(Principal principal, @RequestBody Customer customer) {
         LOG.debug("Updating Customer: " + customer);
 
-        Optional<Customer> existingCustomerOptional = customerService.findById(customer.getId());
-        if (!existingCustomerOptional.isPresent()) return ResponseEntity.noContent().build();
-
-        Customer existingCustomer = existingCustomerOptional.get();
-
-        existingCustomer.setName(customer.getName());
-        existingCustomer.setSurname(customer.getSurname());
-        if (customer.getImage() != null) {
-            existingCustomer.setImage(customer.getImage());
-        }
-
-        existingCustomer.setModifiedBy(principal.getName());
-
-        Optional<ValidationResult> validationResult = entityValidator.validate(existingCustomer);
-        if (validationResult.isPresent()) {
-            return ResponseEntity.badRequest().body(validationResult.get());
-        }
-
-        customerService.save(existingCustomer);
-
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/details/{id}").buildAndExpand(existingCustomer.getId()).toUri();
-        return ResponseEntity.ok().location(location).build();
+        Long id = customerService.update(customer, principal.getName());
+        return ResponseEntity.ok().location(buildResourceUrl(id)).build();
     }
 
-    @PostMapping("/delete/{customerId}")
-    public ResponseEntity<Void> delete(@PathVariable Long customerId) {
-        LOG.debug("Deleting Customer by ID: " + customerId);
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        LOG.debug("Deleting Customer by ID: " + id);
 
-        Optional<Customer> existingCustomer = customerService.findById(customerId);
-        if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
-        customerService.delete(customerId);
+        customerService.delete(id);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/image/upload/{customerId}")
-    public ResponseEntity<ValidationResult> uploadImage(@PathVariable Long customerId, @RequestParam("file") MultipartFile file) {
-        LOG.debug("Uploading Customer Image by ID: {}", customerId);
-
-        Optional<Customer> existingCustomer = customerService.findById(customerId);
-        if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
-        Customer customer = existingCustomer.get();
+    @PostMapping("/image/upload/{id}")
+    public ResponseEntity<ValidationResult> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        LOG.debug("Uploading Customer Image by ID: {}", id);
 
         try {
-            CustomerImage customerImage = new CustomerImage(file.getOriginalFilename(), file.getContentType(), file.getBytes());
-
-            Optional<ValidationResult> validationResult = entityValidator.validate(customerImage);
-            if (validationResult.isPresent()) {
-                return ResponseEntity.badRequest().body(validationResult.get());
-            }
-
-            customer.setImage(customerImage);
-            customerService.save(customer);
+            Long imageId = customerService.uploadImage(id, file);
+            return ResponseEntity.created(buildImageResourceUrl(imageId)).build();
         } catch (IOException e) {
             LOG.error("Unable to upload image:" + e, e);
             return ResponseEntity.badRequest().build();
         }
-
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/customer/image/{id}").buildAndExpand(customer.getId()).toUri();
-        return ResponseEntity.created(location).build();
     }
 
-    @GetMapping("/image/{customerId}")
-    public ResponseEntity<byte[]> image(@PathVariable Long customerId) {
-        LOG.debug("Getting Customer Image by ID: {}", customerId);
+    @GetMapping("/image/{id}")
+    public ResponseEntity<byte[]> image(@PathVariable Long id) {
+        LOG.debug("Getting Customer Image by ID: {}", id);
 
-        Optional<Customer> customerOptional = customerService.findById(customerId);
-        if (customerOptional.isPresent()) {
-            Customer customer = customerOptional.get();
-            if (customer.getImage() != null) {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.valueOf(customer.getImage().getType()));
-                headers.setCacheControl(CacheControl.noCache().getHeaderValue());
-                return new ResponseEntity<>(customer.getImage().getData(), headers, HttpStatus.OK);
-            }
-        }
-        return ResponseEntity.noContent().build();
+        CustomerImage customerImage = customerService.getImageById(id);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf(customerImage.getType()));
+        headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+        return new ResponseEntity<>(customerImage.getData(), headers, HttpStatus.OK);
     }
 
-    @PostMapping("/image/delete/{customerId}")
-    public ResponseEntity<Void> deleteImage(@PathVariable Long customerId) {
-        LOG.debug("Deleting Customer Image by ID: {}", customerId);
+    @PostMapping("/image/delete/{id}")
+    public ResponseEntity<Void> deleteImage(@PathVariable Long id) {
+        LOG.debug("Deleting Customer Image by ID: {}", id);
 
-        Optional<Customer> existingCustomer = customerService.findById(customerId);
-        if (!existingCustomer.isPresent()) return ResponseEntity.noContent().build();
-
-        Customer customer = existingCustomer.get();
-        if (customer.getImage() != null) {
-            customer.setImage(null);
-            customerService.save(customer);
-        }
+        customerService.deleteImage(id);
         return ResponseEntity.ok().build();
     }
 
+    private URI buildResourceUrl(Long id) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/customer/details/{id}")
+                .buildAndExpand(id)
+                .toUri();
+    }
+
+    private URI buildImageResourceUrl(Long id) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/customer/image/{id}")
+                .buildAndExpand(id)
+                .toUri();
+    }
 }

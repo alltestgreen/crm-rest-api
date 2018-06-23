@@ -1,5 +1,7 @@
 package com.abara.model;
 
+import com.abara.entity.Customer;
+
 import java.net.URI;
 
 public class CustomerDetails {
@@ -26,6 +28,14 @@ public class CustomerDetails {
         this.imageURI = imageURI;
         this.createdBy = createdBy;
         this.modifiedBy = modifiedBy;
+    }
+
+    public static CustomerDetails fromUser(Customer customer, URI uri) {
+        CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), null, customer.getCreatedBy(), customer.getModifiedBy());
+        if (customer.getImage() != null) {
+            customerDetails.setImageURI(uri);
+        }
+        return customerDetails;
     }
 
     public Long getId() {
