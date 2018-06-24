@@ -21,7 +21,7 @@ public class CustomerDetails {
     CustomerDetails() {
     }
 
-    public CustomerDetails(Long id, String name, String surname, URI imageURI, String createdBy, String modifiedBy) {
+    private CustomerDetails(Long id, String name, String surname, URI imageURI, String createdBy, String modifiedBy) {
         this.id = id;
         this.name = name;
         this.surname = surname;

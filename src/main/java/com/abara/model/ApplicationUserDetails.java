@@ -16,7 +16,7 @@ public class ApplicationUserDetails {
     ApplicationUserDetails() {
     }
 
-    public ApplicationUserDetails(Long id, String username, Set<Role> roles) {
+    private ApplicationUserDetails(Long id, String username, Set<Role> roles) {
         this.id = id;
         this.username = username;
         this.roles = roles;
