@@ -16,7 +16,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .frameOptions().disable().and()
                 .authorizeRequests()
                 .antMatchers("/api/customers/**").hasRole("USER")
-                .antMatchers("/api/user/**").hasRole("ADMIN");
+                .antMatchers("/api/users/**").hasRole("ADMIN");
     }
 
 }
