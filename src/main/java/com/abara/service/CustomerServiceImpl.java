@@ -14,9 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -39,9 +40,10 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Map<Long, String> list() {
-        return customerRepository.listAllCustomer().stream()
-                .collect(Collectors.toMap(e -> (Long) e[0], e -> (String) e[1]));
+    public List<CustomerDetails> list() {
+        return StreamSupport.stream(customerRepository.findAll().spliterator(), false)
+                .map(c -> CustomerDetails.fromCustomer(c, null))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -49,7 +51,7 @@ public class CustomerServiceImpl implements CustomerService {
         Optional<Customer> customerOptional = customerRepository.findById(id);
         if (!customerOptional.isPresent()) throw new EntityNotFoundException("Could not find Customer by ID: " + id);
 
-        return CustomerDetails.fromUser(customerOptional.get(), uri);
+        return CustomerDetails.fromCustomer(customerOptional.get(), uri);
     }
 
     @Override

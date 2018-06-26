@@ -14,7 +14,11 @@ public abstract class AbstractIntegrationTest {
     protected int port;
 
     protected String createURLWithPort(String uri) {
-        return "http://localhost:" + port + uri;
+        return String.format("http://localhost:%d%s", port, uri);
+    }
+
+    protected String createURLWithPortAndId(String uri, Long id) {
+        return String.format("http://localhost:%d%s/%d", port, uri, id);
     }
 
 }

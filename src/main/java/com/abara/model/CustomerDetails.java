@@ -1,6 +1,7 @@
 package com.abara.model;
 
 import com.abara.entity.Customer;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import java.net.URI;
 
@@ -30,7 +31,7 @@ public class CustomerDetails {
         this.modifiedBy = modifiedBy;
     }
 
-    public static CustomerDetails fromUser(Customer customer, URI uri) {
+    public static CustomerDetails fromCustomer(Customer customer, URI uri) {
         CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), null, customer.getCreatedBy(), customer.getModifiedBy());
         if (customer.getImage() != null) {
             customerDetails.setImageURI(uri);
@@ -84,5 +85,11 @@ public class CustomerDetails {
 
     public void setModifiedBy(String modifiedBy) {
         this.modifiedBy = modifiedBy;
+    }
+
+    @Override
+    public boolean equals(Object that) {
+        if (getClass() != that.getClass()) return false;
+        return EqualsBuilder.reflectionEquals(this, that, "createdBy", "modifiedBy");
     }
 }
