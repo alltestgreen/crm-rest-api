@@ -65,7 +65,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals("Grace", customerDetails.getName());
         assertEquals("Clayson", customerDetails.getSurname());
-        assertEquals(createURLWithPortAndId(API_CUSTOMER_IMAGE_PATH ,testID), customerDetails.getImageURI().toString());
+        assertEquals(createURLWithPortAndId(API_CUSTOMER_IMAGE_PATH, testID), customerDetails.getImageURI().toString());
     }
 
     @Test

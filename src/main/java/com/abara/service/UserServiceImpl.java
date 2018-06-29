@@ -33,8 +33,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Long create(User user) {
 
-        Optional<ValidationResult> validationResult = entityValidator.validate(user);
-        if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
+        validateUser(user);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
@@ -49,19 +48,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApplicationUserDetails getDetailsById(Long id) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (!userOptional.isPresent()) throw new EntityNotFoundException("Could not find User by ID: " + id);
+        User user = getUserById(id);
 
-        return ApplicationUserDetails.fromUser(userOptional.get());
+        return ApplicationUserDetails.fromUser(user);
     }
 
     @Override
     public Long update(User user) {
 
-        Optional<User> userOptional = userRepository.findById(user.getId());
-        if (!userOptional.isPresent()) throw new EntityNotFoundException("Could not find User by ID: " + user.getId());
-
-        User existingUser = userOptional.get();
+        User existingUser = getUserById(user.getId());
 
         existingUser.setUsername(user.getUsername());
         existingUser.setRoles(user.getRoles());
@@ -69,8 +64,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setPassword(user.getPassword());
         }
 
-        Optional<ValidationResult> validationResult = entityValidator.validate(existingUser);
-        if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
+        validateUser(existingUser);
 
         User updatedUser = userRepository.save(existingUser);
         return updatedUser.getId();
@@ -78,10 +72,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long id) {
-        Optional<User> existingUser = userRepository.findById(id);
-        if (!existingUser.isPresent()) throw new EntityNotFoundException("Could not find User by ID: " + id);
+        User user = getUserById(id);
 
-        userRepository.deleteById(id);
+        userRepository.deleteById(user.getId());
+    }
+
+    private void validateUser(User user) {
+        Optional<ValidationResult> validationResult = entityValidator.validate(user);
+        if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
+    }
+
+    private User getUserById(Long id) {
+        Optional<User> userOptional = userRepository.findById(id);
+        if (!userOptional.isPresent()) throw new EntityNotFoundException("Could not find User by ID: " + id);
+        return userOptional.get();
     }
 
 }
