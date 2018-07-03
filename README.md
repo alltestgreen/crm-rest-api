@@ -22,27 +22,32 @@ http://localhost:8080/oauth/token?grant_type=password&username=admin&password=ad
 
 After receiving the token, it is required in the following requests. Expiration is configurable in properties.
 ```
-http://localhost:8080/api/customer/details/1?access_token=95a662ba-a359-4c48-b3cf-d7ef60b0165e
+http://localhost:8080/api/customers/1?access_token=95a662ba-a359-4c48-b3cf-d7ef60b0165e
 ``` 
 
 # Customer services
 
-All endpoint is under **/api/customer/** and requires **[USER]** role to be accessed.
+All endpoint is under **/api/customers/** and requires **[USER]** role to be accessed.
 
 ### 1. List all customers in the database.
 
 ```
-GET http://localhost:8080/api/customer/list
+GET http://localhost:8080/api/customers
 ```
 
-Returns a map of id and full names containing all existing customer:
+Returns a List of `com.abara.model.CustomerDetails` object containing all existing customer:
 
 ```
-{
-    "1": "John Smith",
-    "2": "Grace Clayson",
-    "3": "Timothy Thompson"
-}
+[
+    {
+        "id": 1,
+        "name": "John",
+        "surname": "Smith",
+        "imageURI": null,
+        "createdBy": "admin",
+        "modifiedBy": null
+    }
+]
 ```
 
 ### 2. Get full customer information, including a photo URI
@@ -50,7 +55,7 @@ Returns a map of id and full names containing all existing customer:
 Expects Path variable with customer id.
 
 ```
-GET http://localhost:8080/api/customer/details/3
+GET http://localhost:8080/api/customers/3
 ```
 
 Returns `com.abara.model.CustomerDetails` object, includes a resource URL to the customer image.
@@ -60,7 +65,7 @@ Returns `com.abara.model.CustomerDetails` object, includes a resource URL to the
     "id": 3,
     "name": "Timothy",
     "surname": "Thompson",
-    "imageURI": "http://localhost:8080/api/customer/image/3",
+    "imageURI": "http://localhost:8080/api/customers/image/3",
     "createdBy": "admin",
     "modifiedBy": null
 }
@@ -69,7 +74,7 @@ Returns `com.abara.model.CustomerDetails` object, includes a resource URL to the
 ### 3. Create a new customer:
 
 ```
-POST http://localhost:8080/api/customer/create
+POST http://localhost:8080/api/customers
 ```
 
 As Request body, it expects a `com.abara.entity.Customer` object.
@@ -89,13 +94,13 @@ As Request body, it expects a `com.abara.entity.Customer` object.
 Upon success, **HTTP 201 CREATED** status returned along with the location header of new resource:
 
 ```
-location http://localhost:8080/api/customer/details/4
+location http://localhost:8080/api/customers/4
 ```
 
 ### 4. Update an existing customer.
 
 ```
-PUT http://localhost:8080/api/customer/update
+PUT http://localhost:8080/api/customers
 ```
 
 As Request body, it expects a `com.abara.entity.Customer` object.
@@ -112,7 +117,7 @@ As Request body, it expects a `com.abara.entity.Customer` object.
 Upon success, **HTTP 200 OK** status returned along with the location header of updated resource:
 
 ```
-location http://localhost:8080/api/customer/details/4
+location http://localhost:8080/api/customers/4
 ```
 
 ### 5. Delete an existing customer
@@ -120,7 +125,7 @@ location http://localhost:8080/api/customer/details/4
 Expects Path variable with customer id.
 
 ```
-POST http://localhost:8080/api/customer/delete/3
+DELETE http://localhost:8080/api/customers/3
 ```
 
 Upon success, **HTTP 200 OK** status returned.
@@ -128,24 +133,24 @@ Upon success, **HTTP 200 OK** status returned.
 ### 6. Upload customer image
 Expects Path variable with customer id.
 ```
-POST http://localhost:8080/api/customer/image/upload/2
+POST http://localhost:8080/api/customers/image/2
 ```
 Upon success, **HTTP 201 CREATED** status returned along with the location header of new resource:
 ```
-location http://localhost:8080/api/customer/image/2
+location http://localhost:8080/api/customers/image/2
 ```
 
 ### 7. Get customer image
 Expects Path variable with customer id.
 ```
-GET http://localhost:8080/api/customer/image/2
+GET http://localhost:8080/api/customers/image/2
 ```
 Upon success, **HTTP 200 OK** status returned along with body containing the file content as byte[];
 
 ### 8. Delete customer image
 Expects Path variable with customer id.
 ```
-POST http://localhost:8080/api/customer/image/delete/2
+DELETE http://localhost:8080/api/customers/image/delete/2
 ```
 Upon success, **HTTP 200 OK** status returned.
 
@@ -165,12 +170,12 @@ When a POST/PUT entity fails validation, `com.abara.validation.ValidationResult`
 
 # User services
 
-All endpoint is under **/api/user/** and requires **[ADMIN]** role to be accessed.
+All endpoint is under **/api/users/** and requires **[ADMIN]** role to be accessed.
 
 ### 1. List users.
 
 ```
-GET http://localhost:8080/api/user/list
+GET http://localhost:8080/api/users
 ```
 
 Returns a list of `com.abara.model.ApplicationUserDetails` containing all existing user (excluding password):
@@ -204,7 +209,7 @@ Returns a list of `com.abara.model.ApplicationUserDetails` containing all existi
 ### 2. Create users.
 
 ```
-POST http://localhost:8080/api/user/create
+POST http://localhost:8080/api/users
 ```
 
 As Request body, it expects a `com.abara.entity.User` object.
@@ -224,7 +229,7 @@ As Request body, it expects a `com.abara.entity.User` object.
 Upon success, **HTTP 201 CREATED** status returned along with the location header of new resource:
 
 ```
-location http://localhost:8080/api/user/details/2
+location http://localhost:8080/api/users/2
 ```
 
 ### 3. Get full user information (excluding password)
@@ -232,7 +237,7 @@ location http://localhost:8080/api/user/details/2
 Expects Path variable with user id.
 
 ```
-GET http://localhost:8080/api/user/details/3
+GET http://localhost:8080/api/users/3
 ```
 
 Returns `com.abara.model.ApplicationUserDetails` object.
@@ -252,7 +257,7 @@ Returns `com.abara.model.ApplicationUserDetails` object.
 ### 4. Update users.
 
 ```
-PUT http://localhost:8080/api/user/update
+PUT http://localhost:8080/api/users
 ```
 
 As Request body, it expects a `com.abara.entity.User` object.
@@ -271,7 +276,7 @@ As Request body, it expects a `com.abara.entity.User` object.
 Upon success, **HTTP 200 OK** status returned along with the location header of updated resource:
 
 ```
-location http://localhost:8080/api/user/details/4
+location http://localhost:8080/api/users/4
 ```
 
 ### 5. Delete users.
@@ -279,7 +284,7 @@ location http://localhost:8080/api/user/details/4
 Expects Path variable with user id.
 
 ```
-POST http://localhost:8080/api/user/delete/3
+DELETE http://localhost:8080/api/users/3
 ```
 
 Upon success, **HTTP 200 OK** status returned.

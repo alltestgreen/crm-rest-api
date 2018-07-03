@@ -13,7 +13,7 @@ public class ValidationResult {
     ValidationResult() {
     }
 
-    ValidationResult(String entityName, Map<String, String> errors) {
+    public ValidationResult(String entityName, Map<String, String> errors) {
         this.entityName = entityName;
         this.errors = errors;
     }

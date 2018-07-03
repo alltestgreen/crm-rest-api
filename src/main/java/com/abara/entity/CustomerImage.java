@@ -13,12 +13,7 @@ import javax.validation.constraints.Size;
 public class CustomerImage {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customer_image_seq")
-    @SequenceGenerator(
-            name = "customer_image_seq",
-            sequenceName = "customer_image_sequence",
-            allocationSize = 20
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull

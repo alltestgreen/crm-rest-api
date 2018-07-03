@@ -14,23 +14,27 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+import static com.abara.controller.UserController.API_USER_PATH;
+
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping(API_USER_PATH)
 public class UserController {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserController.class);
 
+    static final String API_USER_PATH = "/api/users";
+
     @Autowired
     private UserService userService;
 
-    @GetMapping("/list")
+    @GetMapping
     public List<ApplicationUserDetails> list() {
         LOG.debug("Retrieving all User Details");
 
         return userService.list();
     }
 
-    @GetMapping("/details/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ApplicationUserDetails> details(@PathVariable Long id) {
         LOG.debug("Getting details of User by id: " + id);
 
@@ -38,25 +42,25 @@ public class UserController {
         return ResponseEntity.ok(userDetails);
     }
 
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<ValidationResult> create(@RequestBody User user) {
         LOG.debug("Creating User: " + user);
 
         Long id = userService.create(user);
 
-        return ResponseEntity.created(buildResourceUrl(id)).build();
+        return ResponseEntity.created(buildResourceUri(id)).build();
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public ResponseEntity<ValidationResult> update(@RequestBody User user) {
         LOG.debug("Updating User: " + user);
 
         Long id = userService.update(user);
 
-        return ResponseEntity.ok().location(buildResourceUrl(id)).build();
+        return ResponseEntity.ok().location(buildResourceUri(id)).build();
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         LOG.debug("Deleting User by ID: " + id);
 
@@ -64,9 +68,9 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    private URI buildResourceUrl(Long id) {
+    private URI buildResourceUri(Long id) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/user/details/{id}")
+                .path(API_USER_PATH + "/{id}")
                 .buildAndExpand(id)
                 .toUri();
     }

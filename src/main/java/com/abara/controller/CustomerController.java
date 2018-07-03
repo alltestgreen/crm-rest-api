@@ -17,13 +17,18 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.security.Principal;
-import java.util.Map;
+import java.util.List;
+
+import static com.abara.controller.CustomerController.API_CUSTOMER_PATH;
 
 @RestController
-@RequestMapping("/api/customer")
+@RequestMapping(API_CUSTOMER_PATH)
 public class CustomerController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CustomerController.class);
+
+    static final String API_CUSTOMER_PATH = "/api/customers";
+    static final String API_CUSTOMER_IMAGE_PATH = API_CUSTOMER_PATH + "/image";
 
     @Autowired
     private CustomerService customerService;
@@ -31,40 +36,40 @@ public class CustomerController {
     @Autowired
     private EntityValidator entityValidator;
 
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<ValidationResult> create(Principal principal, @RequestBody Customer customer) {
         LOG.debug("Creating Customer: " + customer);
 
         Long id = customerService.create(customer, principal.getName());
 
-        return ResponseEntity.created(buildResourceUrl(id)).build();
+        return ResponseEntity.created(buildResourceUri(API_CUSTOMER_PATH, id)).build();
     }
 
-    @GetMapping("/list")
-    public Map<Long, String> list() {
+    @GetMapping
+    public List<CustomerDetails> list() {
         LOG.debug("Retrieving all Customer Details");
 
         return customerService.list();
     }
 
-    @GetMapping("/details/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<CustomerDetails> details(@PathVariable Long id) {
         LOG.debug("Getting details of Customer by id: " + id);
 
-        CustomerDetails customerDetails = customerService.getDetailsById(id, buildImageResourceUrl(id));
+        CustomerDetails customerDetails = customerService.getDetailsById(id, buildResourceUri(API_CUSTOMER_IMAGE_PATH, id));
         return ResponseEntity.ok(customerDetails);
     }
 
 
-    @PutMapping("/update")
+    @PutMapping
     public ResponseEntity<ValidationResult> update(Principal principal, @RequestBody Customer customer) {
         LOG.debug("Updating Customer: " + customer);
 
         Long id = customerService.update(customer, principal.getName());
-        return ResponseEntity.ok().location(buildResourceUrl(id)).build();
+        return ResponseEntity.ok().location(buildResourceUri(API_CUSTOMER_PATH, id)).build();
     }
 
-    @PostMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         LOG.debug("Deleting Customer by ID: " + id);
 
@@ -72,13 +77,13 @@ public class CustomerController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/image/upload/{id}")
+    @PostMapping("/image/{id}")
     public ResponseEntity<ValidationResult> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         LOG.debug("Uploading Customer Image by ID: {}", id);
 
         try {
             Long imageId = customerService.uploadImage(id, file);
-            return ResponseEntity.created(buildImageResourceUrl(imageId)).build();
+            return ResponseEntity.created(buildResourceUri(API_CUSTOMER_IMAGE_PATH, id)).build();
         } catch (IOException e) {
             LOG.error("Unable to upload image:" + e, e);
             return ResponseEntity.badRequest().build();
@@ -96,7 +101,7 @@ public class CustomerController {
         return new ResponseEntity<>(customerImage.getData(), headers, HttpStatus.OK);
     }
 
-    @PostMapping("/image/delete/{id}")
+    @DeleteMapping("/image/{id}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long id) {
         LOG.debug("Deleting Customer Image by ID: {}", id);
 
@@ -104,16 +109,9 @@ public class CustomerController {
         return ResponseEntity.ok().build();
     }
 
-    private URI buildResourceUrl(Long id) {
+    private URI buildResourceUri(String path, Long id) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/customer/details/{id}")
-                .buildAndExpand(id)
-                .toUri();
-    }
-
-    private URI buildImageResourceUrl(Long id) {
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/customer/image/{id}")
+                .path(path + "/{id}")
                 .buildAndExpand(id)
                 .toUri();
     }

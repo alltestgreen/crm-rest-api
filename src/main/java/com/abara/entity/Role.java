@@ -13,12 +13,7 @@ import javax.validation.constraints.Size;
 public class Role {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "role_seq")
-    @SequenceGenerator(
-            name = "role_seq",
-            sequenceName = "role_sequence",
-            allocationSize = 20
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull

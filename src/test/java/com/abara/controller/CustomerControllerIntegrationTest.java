@@ -21,20 +21,13 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
+import java.util.List;
 
+import static com.abara.controller.CustomerController.API_CUSTOMER_IMAGE_PATH;
+import static com.abara.controller.CustomerController.API_CUSTOMER_PATH;
 import static org.junit.Assert.*;
 
 public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
-
-    private static final String API_CUSTOMER_CREATE = "/api/customer/create";
-    private static final String API_CUSTOMER_DETAILS = "/api/customer/details/";
-    private static final String API_CUSTOMER_LIST = "/api/customer/list";
-    private static final String API_CUSTOMER_UPDATE = "/api/customer/update";
-    private static final String API_CUSTOMER_DELETE = "/api/customer/delete/";
-    private static final String API_CUSTOMER_IMAGE = "/api/customer/image/";
-    private static final String API_CUSTOMER_IMAGE_UPLOAD = "api/customer/image/upload/";
-    private static final String API_CUSTOMER_IMAGE_DELETE = "api/customer/image/delete/";
 
     @Value("${oauth.username}")
     private String apiUser;
@@ -47,22 +40,24 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testRetrieveAll() {
-        ResponseEntity<Map<Long, String>> response = restTemplate.exchange(
-                createURLWithPort(API_CUSTOMER_LIST), HttpMethod.GET, new HttpEntity<>(null), new ParameterizedTypeReference<Map<Long, String>>() {
+        ResponseEntity<List<CustomerDetails>> response = restTemplate.exchange(
+                createURLWithPort(API_CUSTOMER_PATH), HttpMethod.GET, new HttpEntity<>(null), new ParameterizedTypeReference<List<CustomerDetails>>() {
                 });
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        Map<Long, String> customerMap = response.getBody();
+        List<CustomerDetails> customerMap = response.getBody();
 
-        Assert.assertEquals("John Smith", customerMap.get(1L));
-        Assert.assertEquals("Grace Clayson", customerMap.get(2L));
+        Assert.assertEquals("John", customerMap.get(0).getName());
+        Assert.assertEquals("Smith", customerMap.get(0).getSurname());
+        Assert.assertEquals("Grace", customerMap.get(1).getName());
+        Assert.assertEquals("Clayson", customerMap.get(1).getSurname());
     }
 
     @Test
     public void testRetrieveById() {
         Long testID = 2L;
         ResponseEntity<CustomerDetails> response = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+                createURLWithPortAndId(API_CUSTOMER_PATH, testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         CustomerDetails customerDetails = response.getBody();
@@ -70,7 +65,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals("Grace", customerDetails.getName());
         assertEquals("Clayson", customerDetails.getSurname());
-        assertEquals("http://localhost:" + port + API_CUSTOMER_IMAGE + testID, customerDetails.getImageURI().toString());
+        assertEquals(createURLWithPortAndId(API_CUSTOMER_IMAGE_PATH ,testID), customerDetails.getImageURI().toString());
     }
 
     @Test
@@ -81,12 +76,11 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         Customer newCustomer = new Customer(testName, testSurName, testImage);
 
         ResponseEntity<ValidationResult> response = restTemplate.postForEntity(
-                createURLWithPort(API_CUSTOMER_CREATE),
-                new HttpEntity<>(newCustomer), ValidationResult.class);
+                createURLWithPort(API_CUSTOMER_PATH), new HttpEntity<>(newCustomer), ValidationResult.class);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();
-        assertTrue(resourceURL.toString().contains(API_CUSTOMER_DETAILS));
+        assertTrue(resourceURL.toString().contains(API_CUSTOMER_PATH));
 
         ResponseEntity<CustomerDetails> getResponse = restTemplate.getForEntity(resourceURL, CustomerDetails.class);
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
@@ -106,8 +100,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         Customer customer = new Customer(invalidName, invalidSurName, null);
 
         try {
-            restTemplate.postForEntity(createURLWithPort(API_CUSTOMER_CREATE),
-                    new HttpEntity<>(customer), ValidationResult.class);
+            restTemplate.postForEntity(createURLWithPort(API_CUSTOMER_PATH), new HttpEntity<>(customer), ValidationResult.class);
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
 
@@ -129,7 +122,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         CustomerImage testImage = new CustomerImage("name", "type", new byte[]{123});
 
         ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+                createURLWithPortAndId(API_CUSTOMER_PATH, testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
         CustomerDetails customerDetails = customerResponse.getBody();
 
@@ -142,12 +135,12 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         customer.setImage(testImage);
 
         ResponseEntity<ValidationResult> response = restTemplate.exchange(
-                createURLWithPort(API_CUSTOMER_UPDATE),
+                createURLWithPort(API_CUSTOMER_PATH),
                 HttpMethod.PUT, new HttpEntity<>(customer), ValidationResult.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         URI resourceURL = response.getHeaders().getLocation();
-        assertTrue(resourceURL.toString().contains(API_CUSTOMER_DETAILS));
+        assertTrue(resourceURL.toString().contains(API_CUSTOMER_PATH));
 
         ResponseEntity<CustomerDetails> updatedResponse = restTemplate.getForEntity(resourceURL, CustomerDetails.class);
         assertEquals(HttpStatus.OK, updatedResponse.getStatusCode());
@@ -168,7 +161,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         customer.setId(testID);
 
         try {
-            restTemplate.put(createURLWithPort(API_CUSTOMER_UPDATE), new HttpEntity<>(customer));
+            restTemplate.put(createURLWithPort(API_CUSTOMER_PATH), new HttpEntity<>(customer));
         } catch (HttpClientErrorException e) {
             assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
 
@@ -186,18 +179,18 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         Long testID = 3L;
 
         ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+                createURLWithPortAndId(API_CUSTOMER_PATH, testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
         CustomerDetails customerDetails = customerResponse.getBody();
         Assert.assertNotNull(customerDetails);
 
-        ResponseEntity<Void> deleteResponse = restTemplate.postForEntity(
-                createURLWithPort(API_CUSTOMER_DELETE + testID),
-                new HttpEntity<>(null), Void.class);
+        ResponseEntity<Void> deleteResponse = restTemplate.exchange(
+                createURLWithPortAndId(API_CUSTOMER_PATH, testID),
+                HttpMethod.DELETE, new HttpEntity<>(null), Void.class);
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
 
         ResponseEntity<CustomerDetails> getResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+                createURLWithPortAndId(API_CUSTOMER_PATH, testID), CustomerDetails.class);
         assertEquals(HttpStatus.NO_CONTENT, getResponse.getStatusCode());
     }
 
@@ -214,15 +207,15 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         ResponseEntity<ValidationResult> uploadResponse = restTemplate.postForEntity(
-                createURLWithPort(API_CUSTOMER_IMAGE_UPLOAD + testID), new HttpEntity<>(map, headers), ValidationResult.class);
+                createURLWithPortAndId(API_CUSTOMER_IMAGE_PATH, testID), new HttpEntity<>(map, headers), ValidationResult.class);
         assertEquals(HttpStatus.CREATED, uploadResponse.getStatusCode());
 
         ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+                createURLWithPortAndId(API_CUSTOMER_PATH, testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
         CustomerDetails customerDetails = customerResponse.getBody();
         Assert.assertNotNull(customerDetails);
-        Assert.assertTrue(customerDetails.getImageURI().toString().contains(API_CUSTOMER_IMAGE));
+        Assert.assertTrue(customerDetails.getImageURI().toString().contains(API_CUSTOMER_IMAGE_PATH));
     }
 
     @Test
@@ -231,7 +224,7 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
         FileSystemResource fileSystemResource = new FileSystemResource("src/test/resources/images/red-dot.png");
 
         ResponseEntity<byte[]> response = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_IMAGE + testID), byte[].class);
+                createURLWithPortAndId(API_CUSTOMER_IMAGE_PATH, testID), byte[].class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         byte[] imageBytes = response.getBody();
@@ -242,12 +235,13 @@ public class CustomerControllerIntegrationTest extends AbstractIntegrationTest {
     public void testImageUploadDeletion() {
         Long testID = 1L;
 
-        ResponseEntity<Void> response = restTemplate.postForEntity(
-                createURLWithPort(API_CUSTOMER_IMAGE_DELETE + testID), new HttpEntity<>(null), Void.class);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                createURLWithPortAndId(API_CUSTOMER_IMAGE_PATH, testID),
+                HttpMethod.DELETE, new HttpEntity<>(null), Void.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         ResponseEntity<CustomerDetails> customerResponse = restTemplate.getForEntity(
-                createURLWithPort(API_CUSTOMER_DETAILS + testID), CustomerDetails.class);
+                createURLWithPortAndId(API_CUSTOMER_PATH, testID), CustomerDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
         CustomerDetails customerDetails = customerResponse.getBody();
         Assert.assertNotNull(customerDetails);

@@ -44,8 +44,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<ApplicationUserDetails> list() {
         return userRepository.findAll().stream()
-                .map(u -> new ApplicationUserDetails(u.getId(), u.getUsername(), u.getRoles()))
-                .collect(Collectors.toList());
+                .map(ApplicationUserDetails::fromUser).collect(Collectors.toList());
     }
 
     @Override

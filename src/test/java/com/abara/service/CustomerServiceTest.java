@@ -19,7 +19,7 @@ import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,15 +62,15 @@ public class CustomerServiceTest {
 
     @Test
     public void list() {
-        Object[] customer1 = {11L, "Test Name 1"};
-        Object[] customer2 = {22L, "Test Name 2"};
+        Customer customer1 = new Customer("name1", "surname1", null);
+        Customer customer2 = new Customer("name2", "surname2", null);
 
-        given(repository.listAllCustomer()).willReturn(Stream.of(customer1, customer2).collect(Collectors.toList()));
+        given(repository.findAll()).willReturn(Stream.of(customer1, customer2).collect(Collectors.toList()));
 
-        Map<Long, String> customerMap = service.list();
+        List<CustomerDetails> customerMap = service.list();
         assertEquals(2, customerMap.size());
-        assertEquals("Test Name 1", customerMap.get(11L));
-        assertEquals("Test Name 2", customerMap.get(22L));
+        assertEquals(CustomerDetails.fromCustomer(customer1, null), customerMap.get(0));
+        assertEquals(CustomerDetails.fromCustomer(customer2, null), customerMap.get(1));
     }
 
     @Test

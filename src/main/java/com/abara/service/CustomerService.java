@@ -7,13 +7,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
+import java.util.List;
 
 public interface CustomerService {
 
     Long create(Customer customer, String createdBy);
 
-    Map<Long, String> list();
+    List<CustomerDetails> list();
 
     CustomerDetails getDetailsById(Long id, URI uri);
 
