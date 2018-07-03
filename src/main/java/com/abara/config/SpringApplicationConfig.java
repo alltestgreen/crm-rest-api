@@ -6,6 +6,7 @@ import com.abara.entity.Role;
 import com.abara.entity.User;
 import com.abara.service.CustomerService;
 import com.abara.service.UserService;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -15,8 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,7 +35,7 @@ public class SpringApplicationConfig {
         LOG.info("Populating in-memory database with default data.");
         return args -> {
 
-            byte[] fileBytes = Files.readAllBytes(Paths.get("src/test/resources/images/red-dot.png"));
+            byte[] fileBytes = Base64.decodeBase64("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==");
             CustomerImage customerImage1 = new CustomerImage("red-dot.png", "image/png", fileBytes);
             CustomerImage customerImage2 = new CustomerImage("user.png", "image/png", fileBytes);
 

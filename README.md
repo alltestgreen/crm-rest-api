@@ -2,6 +2,7 @@
 
 ### Table of Contents
 **[Application information](#application-information)**<br>
+**[Docker setup](#docker-setup)**<br>
 **[Customer services](#customer-services)**<br>
 **[User services](#user-services)**<br>
 
@@ -24,6 +25,47 @@ After receiving the token, it is required in the following requests. Expiration 
 ```
 http://localhost:8080/api/customers/1?access_token=95a662ba-a359-4c48-b3cf-d7ef60b0165e
 ``` 
+
+## Docker setup
+
+The application supports running on docker by having its own docker image `crm-backend` based on `java:8` image.
+
+The included Maven wrapper can be used to build it locally from the `project directory` the following way on a compiled project:
+
+```
+./mvnw docker:build
+```
+
+It should create the following files in the target folder:
+```
+\docker\crm-rest-service-0.0.1-SNAPSHOT.jar
+\docker\dockerfile
+```
+
+Then the application can be started, by default it needs to expose port 8080.
+
+The command starts the application and maps container port 8080 (second) to port 8080 of the host machine (first).
+```
+docker run -it -p 8080:8080 crm-backend
+```
+
+After successfully started, it can be accessed the following way:
+```
+GET http://localhost:8080/api/customers
+```
+*If `localhost` can not be reached from host machine, you need to look up the Host IP of the container:*
+```
+docker-machine env
+
+-> 
+
+export DOCKER_HOST="tcp://192.168.99.100:2376"
+```
+
+And use Host IP address to access the application:
+```
+GET http://192.168.99.100:8080/api/customers
+```
 
 # Customer services
 
