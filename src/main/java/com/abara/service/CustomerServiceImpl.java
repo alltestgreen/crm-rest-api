@@ -30,9 +30,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Long create(Customer customer, String createdBy) {
-
-        Optional<ValidationResult> validationResult = entityValidator.validate(customer);
-        if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
+        validate(customer);
 
         customer.setCreatedBy(createdBy);
         Customer savedCustomer = customerRepository.save(customer);
@@ -48,20 +46,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerDetails getDetailsById(Long id, URI uri) {
-        Optional<Customer> customerOptional = customerRepository.findById(id);
-        if (!customerOptional.isPresent()) throw new EntityNotFoundException("Could not find Customer by ID: " + id);
+        Customer customer = getCustomerById(id);
 
-        return CustomerDetails.fromCustomer(customerOptional.get(), uri);
+        return CustomerDetails.fromCustomer(customer, uri);
     }
 
     @Override
     public Long update(Customer customer, String updatedBy) {
-
-        Optional<Customer> customerOptional = customerRepository.findById(customer.getId());
-        if (!customerOptional.isPresent())
-            throw new EntityNotFoundException("Could not find Customer by ID: " + customer.getId());
-
-        Customer existingCustomer = customerOptional.get();
+        Customer existingCustomer = getCustomerById(customer.getId());
 
         existingCustomer.setName(customer.getName());
         existingCustomer.setSurname(customer.getSurname());
@@ -71,8 +63,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         existingCustomer.setModifiedBy(updatedBy);
 
-        Optional<ValidationResult> validationResult = entityValidator.validate(existingCustomer);
-        if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
+        validate(existingCustomer);
 
         Customer updatedCustomer = customerRepository.save(existingCustomer);
         return updatedCustomer.getId();
@@ -80,22 +71,17 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public void delete(Long id) {
-        Optional<Customer> customerOptional = customerRepository.findById(id);
-        if (!customerOptional.isPresent()) throw new EntityNotFoundException("Could not find Customer by ID: " + id);
+        Customer customer = getCustomerById(id);
 
-        customerRepository.deleteById(id);
+        customerRepository.deleteById(customer.getId());
     }
 
     @Override
     public Long uploadImage(Long id, MultipartFile file) throws IOException {
-        Optional<Customer> customerOptional = customerRepository.findById(id);
-        if (!customerOptional.isPresent()) throw new EntityNotFoundException("Could not find Customer by ID: " + id);
-
-        Customer customer = customerOptional.get();
+        Customer customer = getCustomerById(id);
         CustomerImage customerImage = new CustomerImage(file.getOriginalFilename(), file.getContentType(), file.getBytes());
 
-        Optional<ValidationResult> validationResult = entityValidator.validate(customerImage);
-        if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
+        validate(customerImage);
 
         customer.setImage(customerImage);
 
@@ -105,26 +91,31 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerImage getImageById(Long id) {
-        Optional<Customer> customerOptional = customerRepository.findById(id);
-        if (!customerOptional.isPresent()) throw new EntityNotFoundException("Could not find Customer by ID: " + id);
+        Customer customer = getCustomerById(id);
 
-        Customer customer = customerOptional.get();
         if (customer.getImage() == null)
             throw new EntityNotFoundException("Could not find Customer Image by ID: " + id);
-
         return customer.getImage();
     }
 
     @Override
     public void deleteImage(Long id) {
-        Optional<Customer> customerOptional = customerRepository.findById(id);
-        if (!customerOptional.isPresent()) throw new EntityNotFoundException("Could not find Customer by ID: " + id);
-
-        Customer customer = customerOptional.get();
+        Customer customer = getCustomerById(id);
         if (customer.getImage() != null) {
             customer.setImage(null);
             customerRepository.save(customer);
         }
+    }
+
+    private void validate(Object obj) {
+        Optional<ValidationResult> validationResult = entityValidator.validate(obj);
+        if (validationResult.isPresent()) throw new ValidationException(validationResult.get());
+    }
+
+    private Customer getCustomerById(Long id) {
+        Optional<Customer> customerOptional = customerRepository.findById(id);
+        if (!customerOptional.isPresent()) throw new EntityNotFoundException("Could not find Customer by ID: " + id);
+        return customerOptional.get();
     }
 
 }
