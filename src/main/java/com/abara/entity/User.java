@@ -5,7 +5,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Collections;
 import java.util.Set;
@@ -18,11 +18,11 @@ public class User {
     private Long id;
 
     @Column(unique = true)
-    @NotNull
+    @NotBlank
     @Size(max = 256)
     private String username;
 
-    @NotNull
+    @NotBlank
     private String password;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

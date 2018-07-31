@@ -1,5 +1,6 @@
 package com.abara.common;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
@@ -9,8 +10,12 @@ import static org.junit.Assert.*;
 
 public class OAuth2AccessTokenTest extends AbstractIntegrationTest {
 
-    @Autowired
     private OAuth2RestOperations restTemplate;
+
+    @Before
+    public void setUp() {
+        restTemplate = buildRestTemplate();
+    }
 
     @Test
     public void getAccessTokenByGrantedPassword() {

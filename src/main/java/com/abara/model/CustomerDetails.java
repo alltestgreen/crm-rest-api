@@ -5,36 +5,38 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import java.net.URI;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 public class CustomerDetails {
 
     private Long id;
-
+    private String username;
     private String name;
-
     private String surname;
-
+    private String email;
     private URI imageURI;
 
     private String createdBy;
-
     private String modifiedBy;
 
     CustomerDetails() {
     }
 
-    private CustomerDetails(Long id, String name, String surname, URI imageURI, String createdBy, String modifiedBy) {
+    private CustomerDetails(Long id, String username, String name, String surname, String email, URI imageURI, String createdBy, String modifiedBy) {
         this.id = id;
+        this.username = username;
         this.name = name;
         this.surname = surname;
+        this.email = email;
         this.imageURI = imageURI;
         this.createdBy = createdBy;
         this.modifiedBy = modifiedBy;
     }
 
-    public static CustomerDetails fromCustomer(Customer customer, URI uri) {
-        CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getName(), customer.getSurname(), null, customer.getCreatedBy(), customer.getModifiedBy());
-        if (customer.getImage() != null) {
-            customerDetails.setImageURI(uri);
+    public static CustomerDetails fromCustomer(Customer customer, URI imageURI) {
+        CustomerDetails customerDetails = new CustomerDetails(customer.getId(), customer.getUsername(), customer.getName(), customer.getSurname(), customer.getEmail(), null, customer.getCreatedBy(), customer.getModifiedBy());
+        if (isNotBlank(customer.getImageUUID())) {
+            customerDetails.setImageURI(imageURI);
         }
         return customerDetails;
     }
@@ -45,6 +47,14 @@ public class CustomerDetails {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getName() {
@@ -61,6 +71,14 @@ public class CustomerDetails {
 
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public URI getImageURI() {

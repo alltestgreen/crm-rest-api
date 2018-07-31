@@ -20,16 +20,13 @@ public class AuthorisationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Value("${oauth.trusted-client-id}")
+    @Value("${security.oauth.client.id}")
     private String clientId;
 
-    @Value("${oauth.trusted-client-secret}")
+    @Value("${security.oauth.client.secret}")
     private String secret;
 
-    @Value("${oauth.grant-type}")
-    private String grantType;
-
-    @Value("${oauth.access.token.validity.seconds}")
+    @Value("${security.oauth.access.token.validity.seconds}")
     private int accessTokenValiditySeconds;
 
     @Override
@@ -42,7 +39,7 @@ public class AuthorisationServerConfig extends AuthorizationServerConfigurerAdap
         clients.inMemory()
                 .withClient(clientId)
                 .secret(passwordEncoder.encode(secret))
-                .authorizedGrantTypes(grantType)
+                .authorizedGrantTypes("password")
                 .accessTokenValiditySeconds(accessTokenValiditySeconds)
                 .authorities("ROLE_CLIENT", "ROLE_TRUSTED_CLIENT")
                 .scopes("read", "write");

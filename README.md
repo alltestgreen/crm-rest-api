@@ -2,28 +2,57 @@
 
 ### Table of Contents
 **[Application information](#application-information)**<br>
+**[Authentication](#authentication)**<br>
 **[Docker setup](#docker-setup)**<br>
 **[Customer services](#customer-services)**<br>
 **[User services](#user-services)**<br>
 
 ## Application information
 
-The application uses an in-memory h2 database what can be accessed at: `http://localhost:8080/h2-console` where JDBC URL is `jdbc:h2:mem:cmsdb`,
+The application have multiple profiles, DEV and PROD.
 
-For testing purposes, the application can populate data on startup by setting the following property in *application.properties*.
-``` 
-create.default.data=true
-``` 
-The application is using **OAuth 2.0** authentication mechanism. To invoke any API functionality, you need to request access token by granting user credentials:
+**DEV** profile uses an in-memory h2 database what can be accessed at: `/h2-console` where JDBC URL is `jdbc:h2:mem:cmsdb`
+```
+mvn clean install spring-boot:run -Dspring.profiles.active=dev -Pdev
+```
+
+**PROD** profile uses local MySQL database which datasource URL is defined in the `application-prod.properties`.
+```
+mvn clean install spring-boot:run -Dspring.profiles.active=prod -Pprod
+```
+A mysql docker compose provided at: `\src\main\docker\mysql\docker-compose.yml`, you can start it up by changing to its directory and running `docker-compose up`.
+
+*(If your host machine can not access the docker database on localhost, get the specific IP with `docker-machine ip default`)*
+
+For testing purposes, the application can populate data on startup by setting the property `create.default.application.data=true` in `application.properties`.
+
+## Authentication
+
+The application is using **OAuth 2.0** authentication mechanism. To use any API functionality, you need to request access token by granting correct credentials:
 
 For example requesting access token with 'admin':
 ```
-http://localhost:8080/oauth/token?grant_type=password&username=admin&password=admin
-``` 
+POST http://localhost:8080/oauth/token
 
-After receiving the token, it is required in the following requests. Expiration is configurable in properties.
+Body has x-www-form-urlencoded values:
+
+grant_type=password
+username=admin
+password=admin
+
+Header has basic auth of the client credentials and content type:
+
+Authorization=Basic Y2xpZW50OnMzY3IzdHA0c3M=
+Content-Type=application/x-www-form-urlencoded
 ```
-http://localhost:8080/api/customers/1?access_token=95a662ba-a359-4c48-b3cf-d7ef60b0165e
+
+After receiving the token, it is required in the following requests as a header.
+```
+http://localhost:8080/api/customers/1
+
+With Header:
+
+Authorization=Bearer 95a662ba-a359-4c48-b3cf-d7ef60b0165e
 ``` 
 
 ## Docker setup
@@ -83,8 +112,10 @@ Returns a List of `com.abara.model.CustomerDetails` object containing all existi
 [
     {
         "id": 1,
+        "username": "jSmith",
         "name": "John",
         "surname": "Smith",
+        "email": "john.smith@company.com",
         "imageURI": null,
         "createdBy": "admin",
         "modifiedBy": null
@@ -105,8 +136,10 @@ Returns `com.abara.model.CustomerDetails` object, includes a resource URL to the
 ```
 {
     "id": 3,
+    "username": "timthom",
     "name": "Timothy",
     "surname": "Thompson",
+    "email": "timothy.tomphson@company.com",
     "imageURI": "http://localhost:8080/api/customers/image/3",
     "createdBy": "admin",
     "modifiedBy": null
@@ -123,13 +156,10 @@ As Request body, it expects a `com.abara.entity.Customer` object.
 
 ```
 {
-  "name" : "Matthew",
-  "surname" : "Mckenzie",
-  "image" : {
-    "name" : "red-dot.png",
-    "type" : "image/png",
-    "data" : "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
-  }
+  "username" : "ncust",
+  "name" : "New",
+  "surname" : "Customer",
+  "email" : "new.customer@company.com"
 }
 ```
 
@@ -147,12 +177,13 @@ PUT http://localhost:8080/api/customers
 
 As Request body, it expects a `com.abara.entity.Customer` object.
 
-*If Customer Image is not specified in the payload it does not remove existing value. Customer Images can be handled at separate endpoints.*
-
 ```
 {
-  "name" : "Matthew",
-  "surname" : "Mckenzie"
+  "id" : 2,
+  "username" : "updatedUserName",
+  "name" : "updatedName",
+  "surname" : "updatedCustomer",
+  "email" : "updated.customer@company.com"
 }
 ```
 
@@ -173,7 +204,7 @@ DELETE http://localhost:8080/api/customers/3
 Upon success, **HTTP 200 OK** status returned.
 
 ### 6. Upload customer image
-Expects Path variable with customer id.
+Expects Path variable with customer id and a MultipartFile param named 'file'.
 ```
 POST http://localhost:8080/api/customers/image/2
 ```

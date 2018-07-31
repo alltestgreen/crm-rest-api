@@ -1,13 +1,14 @@
 package com.abara.controller;
 
 import com.abara.entity.User;
-import com.abara.model.ApplicationUserDetails;
+import com.abara.model.UserDetails;
 import com.abara.service.UserService;
 import com.abara.validation.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -28,21 +29,24 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public List<ApplicationUserDetails> list() {
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserDetails> list() {
         LOG.debug("Retrieving all User Details");
 
         return userService.list();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApplicationUserDetails> details(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDetails> details(@PathVariable Long id) {
         LOG.debug("Getting details of User by id: " + id);
 
-        ApplicationUserDetails userDetails = userService.getDetailsById(id);
+        UserDetails userDetails = userService.getDetailsById(id);
         return ResponseEntity.ok(userDetails);
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ValidationResult> create(@RequestBody User user) {
         LOG.debug("Creating User: " + user);
 
@@ -52,6 +56,7 @@ public class UserController {
     }
 
     @PutMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ValidationResult> update(@RequestBody User user) {
         LOG.debug("Updating User: " + user);
 
@@ -61,6 +66,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         LOG.debug("Deleting User by ID: " + id);
 
