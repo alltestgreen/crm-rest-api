@@ -1,9 +1,10 @@
 package com.abara.controller;
 
 import com.abara.entity.Customer;
-import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
+import com.abara.model.CustomerImage;
 import com.abara.service.CustomerService;
+import com.abara.service.StorageService;
 import com.abara.validation.EntityValidator;
 import com.abara.validation.ValidationResult;
 import org.slf4j.Logger;
@@ -32,6 +33,9 @@ public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private StorageService storageService;
 
     @Autowired
     private EntityValidator entityValidator;
@@ -82,7 +86,7 @@ public class CustomerController {
         LOG.debug("Uploading Customer Image by ID: {}", id);
 
         try {
-            Long imageId = customerService.uploadImage(id, file);
+            String uuid = customerService.uploadImage(id, file);
             return ResponseEntity.created(buildResourceUri(API_CUSTOMER_IMAGE_PATH, id)).build();
         } catch (IOException e) {
             LOG.error("Unable to upload image:" + e, e);
@@ -91,21 +95,29 @@ public class CustomerController {
     }
 
     @GetMapping("/image/{id}")
-    public ResponseEntity<byte[]> image(@PathVariable Long id) {
+    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
         LOG.debug("Getting Customer Image by ID: {}", id);
-
-        CustomerImage customerImage = customerService.getImageById(id);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.valueOf(customerImage.getType()));
-        headers.setCacheControl(CacheControl.noCache().getHeaderValue());
-        return new ResponseEntity<>(customerImage.getData(), headers, HttpStatus.OK);
+        try {
+            CustomerImage customerImage = customerService.getImageById(id);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.valueOf(customerImage.getType()));
+            headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+            return new ResponseEntity<>(customerImage.getData(), headers, HttpStatus.OK);
+        } catch (IOException e) {
+            LOG.error("Unable to retrieve image:" + e, e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/image/{id}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long id) {
         LOG.debug("Deleting Customer Image by ID: {}", id);
-
-        customerService.deleteImage(id);
+        try {
+            customerService.deleteImage(id);
+        } catch (IOException e) {
+            LOG.error("Unable to delete image:" + e, e);
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok().build();
     }
 

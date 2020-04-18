@@ -2,7 +2,7 @@ package com.abara.service;
 
 import com.abara.entity.Role;
 import com.abara.entity.User;
-import com.abara.model.ApplicationUserDetails;
+import com.abara.model.UserDetails;
 import com.abara.repository.UserRepository;
 import com.abara.validation.EntityValidator;
 import com.abara.validation.ValidationException;
@@ -69,11 +69,11 @@ public class UserServiceTest {
 
         given(repository.findAll()).willReturn(Stream.of(user1, user2).collect(Collectors.toList()));
 
-        List<ApplicationUserDetails> userList = service.list();
+        List<UserDetails> userList = service.list();
         assertEquals(2, userList.size());
 
-        ApplicationUserDetails userDetails1 = userList.get(0);
-        ApplicationUserDetails userDetails2 = userList.get(1);
+        UserDetails userDetails1 = userList.get(0);
+        UserDetails userDetails2 = userList.get(1);
 
         assertEquals(user1.getId(), userDetails1.getId());
         assertEquals(user1.getUsername(), userDetails1.getUsername());
@@ -90,7 +90,7 @@ public class UserServiceTest {
 
         given(repository.findById(userId)).willReturn(Optional.of(user));
 
-        ApplicationUserDetails userDetails = service.getDetailsById(userId);
+        UserDetails userDetails = service.getDetailsById(userId);
 
         assertNotNull(userDetails);
         assertEquals(user.getId(), userDetails.getId());
@@ -120,6 +120,7 @@ public class UserServiceTest {
     public void delete() {
         Long userId = 77L;
         User user = new User("test", "test", new Role("USER"));
+        user.setId(userId);
 
         given(repository.findById(userId)).willReturn(Optional.of(user));
 

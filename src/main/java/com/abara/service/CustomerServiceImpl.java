@@ -1,8 +1,8 @@
 package com.abara.service;
 
 import com.abara.entity.Customer;
-import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
+import com.abara.model.CustomerImage;
 import com.abara.repository.CustomerRepository;
 import com.abara.validation.EntityValidator;
 import com.abara.validation.ValidationException;
@@ -19,11 +19,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private StorageService storageService;
 
     @Autowired
     private EntityValidator entityValidator;
@@ -45,21 +51,20 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerDetails getDetailsById(Long id, URI uri) {
+    public CustomerDetails getDetailsById(Long id, URI imageURI) {
         Customer customer = getCustomerById(id);
 
-        return CustomerDetails.fromCustomer(customer, uri);
+        return CustomerDetails.fromCustomer(customer, imageURI);
     }
 
     @Override
     public Long update(Customer customer, String updatedBy) {
         Customer existingCustomer = getCustomerById(customer.getId());
 
+        existingCustomer.setUsername(customer.getUsername());
         existingCustomer.setName(customer.getName());
         existingCustomer.setSurname(customer.getSurname());
-        if (customer.getImage() != null) {
-            existingCustomer.setImage(customer.getImage());
-        }
+        existingCustomer.setEmail(customer.getEmail());
 
         existingCustomer.setModifiedBy(updatedBy);
 
@@ -77,32 +82,38 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Long uploadImage(Long id, MultipartFile file) throws IOException {
+    public String uploadImage(Long id, MultipartFile file) throws IOException {
+
         Customer customer = getCustomerById(id);
-        CustomerImage customerImage = new CustomerImage(file.getOriginalFilename(), file.getContentType(), file.getBytes());
+        if (isNotBlank(customer.getImageUUID())) {
+            storageService.removeImage(customer.getImageUUID());
+        }
 
-        validate(customerImage);
+        String uuid = storageService.storeImage(file);
 
-        customer.setImage(customerImage);
-
+        customer.setImageUUID(uuid);
         Customer savedCustomer = customerRepository.save(customer);
-        return savedCustomer.getId();
+        return savedCustomer.getImageUUID();
     }
 
     @Override
-    public CustomerImage getImageById(Long id) {
+    public CustomerImage getImageById(Long id) throws IOException {
         Customer customer = getCustomerById(id);
 
-        if (customer.getImage() == null)
+        String uuid = customer.getImageUUID();
+        if (isBlank(customer.getImageUUID()))
             throw new EntityNotFoundException("Could not find Customer Image by ID: " + id);
-        return customer.getImage();
+
+
+        return storageService.getImage(uuid);
     }
 
     @Override
-    public void deleteImage(Long id) {
+    public void deleteImage(Long id) throws IOException {
         Customer customer = getCustomerById(id);
-        if (customer.getImage() != null) {
-            customer.setImage(null);
+        if (isNotBlank(customer.getImageUUID())) {
+            storageService.removeImage(customer.getImageUUID());
+            customer.setImageUUID(null);
             customerRepository.save(customer);
         }
     }

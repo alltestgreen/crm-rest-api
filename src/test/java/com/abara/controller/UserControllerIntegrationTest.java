@@ -3,13 +3,16 @@ package com.abara.controller;
 import com.abara.common.AbstractIntegrationTest;
 import com.abara.entity.Role;
 import com.abara.entity.User;
-import com.abara.model.ApplicationUserDetails;
+import com.abara.model.UserDetails;
 import com.abara.validation.ValidationResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -33,23 +36,25 @@ import static org.junit.Assert.*;
 public class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private OAuth2RestOperations restTemplate;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper mapper;
 
+    @Before
+    public void setUp() {
+        restTemplate = buildRestTemplate();
+    }
+
     @Test
     public void testRetrieveAll() {
-        ResponseEntity<List<ApplicationUserDetails>> response = restTemplate.exchange(
+        ResponseEntity<List<UserDetails>> response = restTemplate.exchange(
                 createURLWithPort(API_USER_PATH), HttpMethod.GET, new HttpEntity<>(null),
-                new ParameterizedTypeReference<List<ApplicationUserDetails>>() {
+                new ParameterizedTypeReference<List<UserDetails>>() {
                 });
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<ApplicationUserDetails> users = response.getBody();
+        List<UserDetails> users = response.getBody();
 
         Assert.assertEquals(2, users.size());
         Assert.assertEquals("admin", users.get(0).getUsername());
@@ -58,11 +63,11 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testRetrieveUserById() {
         Long testID = 1L;
-        ResponseEntity<ApplicationUserDetails> response = restTemplate.getForEntity(
-                createURLWithPortAndId(API_USER_PATH, testID), ApplicationUserDetails.class);
+        ResponseEntity<UserDetails> response = restTemplate.getForEntity(
+                createURLWithPortAndId(API_USER_PATH, testID), UserDetails.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        ApplicationUserDetails userDetails = response.getBody();
+        UserDetails userDetails = response.getBody();
         Assert.assertNotNull(userDetails);
 
         assertEquals(testID, userDetails.getId());
@@ -74,8 +79,8 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testRetrieveNonExistingUserById() {
         Long testID = 99L;
-        ResponseEntity<ApplicationUserDetails> response = restTemplate.getForEntity(
-                createURLWithPortAndId(API_USER_PATH, testID), ApplicationUserDetails.class);
+        ResponseEntity<UserDetails> response = restTemplate.getForEntity(
+                createURLWithPortAndId(API_USER_PATH, testID), UserDetails.class);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
@@ -96,10 +101,10 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         URI resourceURL = response.getHeaders().getLocation();
         assertTrue(resourceURL.toString().contains(API_USER_PATH));
 
-        ResponseEntity<ApplicationUserDetails> getResponse = restTemplate.getForEntity(resourceURL, ApplicationUserDetails.class);
+        ResponseEntity<UserDetails> getResponse = restTemplate.getForEntity(resourceURL, UserDetails.class);
         assertEquals(HttpStatus.OK, getResponse.getStatusCode());
 
-        ApplicationUserDetails createdUser = getResponse.getBody();
+        UserDetails createdUser = getResponse.getBody();
         assertNotNull(createdUser.getId());
         assertEquals(testUserName, createdUser.getUsername());
         assertEquals(roles, createdUser.getRoles());
@@ -132,10 +137,10 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         String testPassword = "pass";
         Role adminRole = new Role("ADMIN");
 
-        ResponseEntity<ApplicationUserDetails> customerResponse = restTemplate.getForEntity(
-                createURLWithPortAndId(API_USER_PATH, testID), ApplicationUserDetails.class);
+        ResponseEntity<UserDetails> customerResponse = restTemplate.getForEntity(
+                createURLWithPortAndId(API_USER_PATH, testID), UserDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
-        ApplicationUserDetails userDetails = customerResponse.getBody();
+        UserDetails userDetails = customerResponse.getBody();
 
         Assert.assertNotNull(userDetails);
 
@@ -155,9 +160,9 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
         URI resourceURL = response.getHeaders().getLocation();
         assertTrue(resourceURL.toString().contains(API_USER_PATH));
 
-        ResponseEntity<ApplicationUserDetails> updatedResponse = restTemplate.getForEntity(resourceURL, ApplicationUserDetails.class);
+        ResponseEntity<UserDetails> updatedResponse = restTemplate.getForEntity(resourceURL, UserDetails.class);
         assertEquals(HttpStatus.OK, updatedResponse.getStatusCode());
-        ApplicationUserDetails updatedUserDetails = updatedResponse.getBody();
+        UserDetails updatedUserDetails = updatedResponse.getBody();
 
         assertEquals(testUsername, updatedUserDetails.getUsername());
         assertEquals(userRoles, updatedUserDetails.getRoles());
@@ -188,10 +193,10 @@ public class UserControllerIntegrationTest extends AbstractIntegrationTest {
     public void testDelete() {
         Long testID = 2L;
 
-        ResponseEntity<ApplicationUserDetails> customerResponse = restTemplate.getForEntity(
-                createURLWithPortAndId(API_USER_PATH, testID), ApplicationUserDetails.class);
+        ResponseEntity<UserDetails> customerResponse = restTemplate.getForEntity(
+                createURLWithPortAndId(API_USER_PATH, testID), UserDetails.class);
         assertEquals(HttpStatus.OK, customerResponse.getStatusCode());
-        ApplicationUserDetails userDetails = customerResponse.getBody();
+        UserDetails userDetails = customerResponse.getBody();
         Assert.assertNotNull(userDetails);
 
         ResponseEntity<Void> deleteResponse = restTemplate.exchange(

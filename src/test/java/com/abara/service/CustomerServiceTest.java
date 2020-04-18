@@ -1,8 +1,8 @@
 package com.abara.service;
 
 import com.abara.entity.Customer;
-import com.abara.entity.CustomerImage;
 import com.abara.model.CustomerDetails;
+import com.abara.model.CustomerImage;
 import com.abara.repository.CustomerRepository;
 import com.abara.validation.EntityValidator;
 import com.abara.validation.ValidationException;
@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -38,14 +39,16 @@ public class CustomerServiceTest {
     @Mock
     private EntityValidator entityValidator;
 
+    @Mock
+    private StorageService storageService;
+
     @InjectMocks
     private CustomerServiceImpl service;
 
     @Test
     public void create() {
         Long testId = 2L;
-        CustomerImage testImage = new CustomerImage("name", "type", new byte[]{123});
-        Customer customer = new Customer("name", "surname", testImage);
+        Customer customer = new Customer("username", "name", "surname", "email@company.com", "imageUuid");
 
         given(entityValidator.validate(customer)).willReturn(Optional.empty());
         Customer mock = mock(Customer.class);
@@ -62,8 +65,8 @@ public class CustomerServiceTest {
 
     @Test
     public void list() {
-        Customer customer1 = new Customer("name1", "surname1", null);
-        Customer customer2 = new Customer("name2", "surname2", null);
+        Customer customer1 = new Customer("username1", "name1", "surname1", "email1@company.com", null);
+        Customer customer2 = new Customer("username2", "name2", "surname2", "email2@company.com", null);
 
         given(repository.findAll()).willReturn(Stream.of(customer1, customer2).collect(Collectors.toList()));
 
@@ -76,8 +79,7 @@ public class CustomerServiceTest {
     @Test
     public void getDetailsById() throws URISyntaxException {
         Long customerId = 55L;
-        CustomerImage testImage = new CustomerImage("name", "type", new byte[]{123});
-        Customer customer = new Customer("name", "surname", testImage);
+        Customer customer = new Customer("username", "name", "surname", "email@company.com", "imageUuid");
         customer.setCreatedBy("admin");
         customer.setModifiedBy("user");
         URI imageUri = new URI("URI");
@@ -87,8 +89,10 @@ public class CustomerServiceTest {
         CustomerDetails customerDetails = service.getDetailsById(customerId, imageUri);
         assertNotNull(customerDetails);
         assertEquals(customer.getId(), customerDetails.getId());
+        assertEquals(customer.getUsername(), customerDetails.getUsername());
         assertEquals(customer.getName(), customerDetails.getName());
         assertEquals(customer.getSurname(), customerDetails.getSurname());
+        assertEquals(customer.getEmail(), customerDetails.getEmail());
         assertEquals(customer.getCreatedBy(), customerDetails.getCreatedBy());
         assertEquals(customer.getModifiedBy(), customerDetails.getModifiedBy());
         assertEquals(imageUri, customerDetails.getImageURI());
@@ -97,7 +101,8 @@ public class CustomerServiceTest {
     @Test
     public void delete() {
         Long customerId = 55L;
-        Customer customer = new Customer("name", "surname", null);
+        Customer customer = new Customer("username", "name", "surname", "email@company.com", "imageUuid");
+        customer.setId(customerId);
 
         given(repository.findById(customerId)).willReturn(Optional.of(customer));
 
@@ -107,54 +112,49 @@ public class CustomerServiceTest {
     }
 
     @Test
-    public void uploadImage() throws IOException {
+    public void uploadImage() throws Exception {
         Long customerId = 2L;
-        String imageName = "imageName";
-        String imageType = "image/png";
+        String testUuid = "uuid";
         byte[] imageBytes = {123};
-        CustomerImage customerImage = new CustomerImage(imageName, imageType, imageBytes);
-        Customer customer = new Customer("name", "surname", customerImage);
+        Customer customer = new Customer("username", "name", "surname", "email@company.com", null);
         customer.setId(customerId);
-        MultipartFile multipartFile = new MockMultipartFile(imageName, imageName, imageType, imageBytes);
+        MultipartFile multipartFile = new MockMultipartFile("imageName", "originalFileName", "image/png", imageBytes);
 
-        given(entityValidator.validate(customerImage)).willReturn(Optional.empty());
         given(repository.findById(customerId)).willReturn(Optional.of(customer));
         given(repository.save(customer)).willReturn(customer);
+        given(storageService.storeImage(multipartFile)).willReturn(testUuid);
 
-        Long createdId = service.uploadImage(customerId, multipartFile);
+        String uuid = service.uploadImage(customerId, multipartFile);
 
-        verify(entityValidator, times(1)).validate(customerImage);
         verify(repository, times(1)).save(customer);
 
-        assertEquals(customerId, createdId);
+        assertEquals(testUuid, uuid);
     }
 
     @Test
-    public void getImageById() {
+    public void getImageById() throws IOException {
         Long customerId = 55L;
-        String imageName = "imageName";
-        String imageType = "image/png";
         byte[] imageBytes = {123};
-        CustomerImage testImage = new CustomerImage(imageName, imageType, imageBytes);
-        Customer customer = new Customer("name", "surname", testImage);
+        String testUuid = "imageUuid";
+        CustomerImage image = new CustomerImage("image/png", imageBytes);
+        Customer customer = new Customer("username", "name", "surname", "email@company.com", testUuid);
 
         given(repository.findById(customerId)).willReturn(Optional.of(customer));
+        given(storageService.getImage(testUuid)).willReturn(image);
 
         CustomerImage customerImage = service.getImageById(customerId);
 
         verify(repository, times(1)).findById(customerId);
 
         assertNotNull(customerImage);
-        assertEquals(imageName, customerImage.getName());
-        assertEquals(imageType, customerImage.getType());
         assertEquals(imageBytes, customerImage.getData());
+        assertEquals("image/png", customerImage.getType());
     }
 
     @Test
-    public void deleteImage() {
+    public void deleteImage() throws Exception {
         Long customerId = 2L;
-        CustomerImage testImage = new CustomerImage("name", "type", new byte[]{123});
-        Customer customer = new Customer("name", "surname", testImage);
+        Customer customer = new Customer("username", "name", "surname", "email@company.com", "imageUuid");
 
         given(repository.findById(customerId)).willReturn(Optional.of(customer));
 

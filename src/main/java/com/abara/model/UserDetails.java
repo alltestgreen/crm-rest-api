@@ -5,25 +5,23 @@ import com.abara.entity.User;
 
 import java.util.Set;
 
-public class ApplicationUserDetails {
+public class UserDetails {
 
     private Long id;
-
     private String username;
-
     private Set<Role> roles;
 
-    ApplicationUserDetails() {
+    UserDetails() {
     }
 
-    private ApplicationUserDetails(Long id, String username, Set<Role> roles) {
+    private UserDetails(Long id, String username, Set<Role> roles) {
         this.id = id;
         this.username = username;
         this.roles = roles;
     }
 
-    public static ApplicationUserDetails fromUser(User user) {
-        return new ApplicationUserDetails(user.getId(), user.getUsername(), user.getRoles());
+    public static UserDetails fromUser(User user) {
+        return new UserDetails(user.getId(), user.getUsername(), user.getRoles());
     }
 
     public Long getId() {

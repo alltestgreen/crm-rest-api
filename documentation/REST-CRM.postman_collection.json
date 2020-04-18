@@ -1,0 +1,772 @@
+{
+	"info": {
+		"_postman_id": "5978af66-6409-4b7c-b55f-57a67e9ab235",
+		"name": "REST-CRM",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Token",
+			"description": "",
+			"item": [
+				{
+					"name": "access_token POST admin",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "s3cr3tp4ss",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "client",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "admin",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"description": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/oauth/token?=&=",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"oauth",
+								"token"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "client",
+									"disabled": true
+								},
+								{
+									"key": "client_password",
+									"value": "s3cr3tp4ss",
+									"disabled": true
+								},
+								{
+									"key": "",
+									"value": ""
+								},
+								{
+									"key": "",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "access_token POST user",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "s3cr3tp4ss",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "client",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "user",
+									"description": "",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "user",
+									"description": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/oauth/token?=&=",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"oauth",
+								"token"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "client",
+									"disabled": true
+								},
+								{
+									"key": "client_password",
+									"value": "s3cr3tp4ss",
+									"disabled": true
+								},
+								{
+									"key": "",
+									"value": ""
+								},
+								{
+									"key": "",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Controller",
+			"description": "",
+			"item": [
+				{
+					"name": "List all User",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "2e0cfa5e-3d4e-450a-ad54-f7cd7b96a2fd",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "90fb2a51-4ae8-49f0-8301-ee79048da1d0",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "a3b1775e-8755-49da-a802-0ed6834c8946",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\" : \"NewUser1\",\r\n  \"password\" : \"P@ssw0rd\",\r\n  \"roles\" : [ {\r\n    \"name\" : \"USER\"\r\n  } ]\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "90fb2a51-4ae8-49f0-8301-ee79048da1d0",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\" : 2,\r\n  \"username\" : \"UpdatedUser\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "2e0cfa5e-3d4e-450a-ad54-f7cd7b96a2fd",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/users/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Customer Controller",
+			"description": "",
+			"item": [
+				{
+					"name": "List all Customer",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "9e715fad-719e-48c4-b029-5fa1bcd2bf36",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer By ID",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "9e715fad-719e-48c4-b029-5fa1bcd2bf36",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/customers/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Customer",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "9e715fad-719e-48c4-b029-5fa1bcd2bf36",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\" : \"ncust\",\r\n  \"name\" : \"New\",\r\n  \"surname\" : \"Customer\",\r\n  \"email\" : \"new.customer@company.com\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Customer",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "7d924d35-3165-4024-a88b-59b7267468c1",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"id\" : 2,\r\n  \"username\" : \"updatedUserName\",\r\n  \"name\" : \"updatedName\",\r\n  \"surname\" : \"updatedCustomer\",\r\n  \"email\" : \"updated.customer@company.com\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Customer",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "7d924d35-3165-4024-a88b-59b7267468c1",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/customers/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Customer Image",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "9e715fad-719e-48c4-b029-5fa1bcd2bf36",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\" : \"ncust\",\r\n  \"name\" : \"New\",\r\n  \"surname\" : \"Customer\",\r\n  \"email\" : \"new.customer@company.com\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Customer Image",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "9e715fad-719e-48c4-b029-5fa1bcd2bf36",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/customers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Customer Image",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "accessToken",
+									"value": "ff2dbae4-19bb-421a-84d3-d8a2206509fb",
+									"type": "string"
+								},
+								{
+									"key": "tokenType",
+									"value": "bearer",
+									"type": "string"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {},
+						"url": {
+							"raw": "http://localhost:8080/api/customers/image/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"customers",
+								"image",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

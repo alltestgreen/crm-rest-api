@@ -6,7 +6,8 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Entity
@@ -16,16 +17,25 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(unique = true)
+    @NotBlank
+    @Size(max = 256)
+    private String username;
+
+    @NotBlank
     @Size(max = 256)
     private String name;
 
-    @NotNull
+    @NotBlank
     @Size(max = 256)
     private String surname;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private CustomerImage image;
+    @Column(unique = true)
+    @NotBlank
+    @Email
+    private String email;
+
+    private String imageUUID;
 
     @Size(max = 256)
     private String createdBy;
@@ -36,10 +46,12 @@ public class Customer {
     public Customer() {
     }
 
-    public Customer(@NotNull String name, @NotNull String surname, CustomerImage image) {
+    public Customer(String username, String name, String surname, String email, String imageUUID) {
+        this.username = username;
         this.name = name;
         this.surname = surname;
-        this.image = image;
+        this.email = email;
+        this.imageUUID = imageUUID;
     }
 
     public Long getId() {
@@ -48,6 +60,14 @@ public class Customer {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getName() {
@@ -66,12 +86,20 @@ public class Customer {
         this.surname = surname;
     }
 
-    public CustomerImage getImage() {
-        return image;
+    public String getEmail() {
+        return email;
     }
 
-    public void setImage(CustomerImage image) {
-        this.image = image;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getImageUUID() {
+        return imageUUID;
+    }
+
+    public void setImageUUID(String imageUUID) {
+        this.imageUUID = imageUUID;
     }
 
     public String getCreatedBy() {

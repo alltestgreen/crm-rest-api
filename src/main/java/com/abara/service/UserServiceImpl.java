@@ -2,7 +2,7 @@ package com.abara.service;
 
 
 import com.abara.entity.User;
-import com.abara.model.ApplicationUserDetails;
+import com.abara.model.UserDetails;
 import com.abara.repository.UserRepository;
 import com.abara.validation.EntityValidator;
 import com.abara.validation.ValidationException;
@@ -41,16 +41,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<ApplicationUserDetails> list() {
+    public List<UserDetails> list() {
         return userRepository.findAll().stream()
-                .map(ApplicationUserDetails::fromUser).collect(Collectors.toList());
+                .map(UserDetails::fromUser)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public ApplicationUserDetails getDetailsById(Long id) {
+    public UserDetails getDetailsById(Long id) {
         User user = getUserById(id);
 
-        return ApplicationUserDetails.fromUser(user);
+        return UserDetails.fromUser(user);
     }
 
     @Override
